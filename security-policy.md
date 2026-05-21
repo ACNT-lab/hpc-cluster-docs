@@ -1,6 +1,15 @@
+---
+title: ACMT HPC Cluster — Security Policy
+type: Protocol + Reference
+last_updated: 2026-05-22
+source_of_truth: This file (policy + risk register); `STATUS.md` §1.3 (open SEC TODO)
+---
+
 # ACMT HPC Cluster — Security Policy
 
 ## 1. Current Security Posture Assessment
+
+> 本節為 **風險登記**（risk register）。對應的 **未處理 TODO 與優先序** 集中在 [`STATUS.md`](STATUS.md) §1.3（ISS-SEC-01 ~ ISS-SEC-07）。完成修補後請更新本表 Status 欄位並從 STATUS.md 移除該 issue。
 
 ### 1.1 Risk Summary
 

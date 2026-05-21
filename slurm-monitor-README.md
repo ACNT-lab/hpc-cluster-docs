@@ -1,3 +1,10 @@
+---
+title: Slurm Monitor (TUI) — Tool Documentation
+type: Reference (tool)
+last_updated: 2026-05-22
+source_of_truth: This file (feature overview); `/root/slurm-monitor/` on acmt0 (source code)
+---
+
 # Slurm Monitor
 
 TUI 工具監控 Slurm/HPC cluster 狀態，使用 Go + Bubble Tea 實作。

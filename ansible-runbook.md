@@ -1,3 +1,10 @@
+---
+title: ACMT HPC Cluster — Ansible Runbook
+type: Operations
+last_updated: 2026-05-22
+source_of_truth: This file (procedures); `/root/acmt-ansible/ansible/` on acmt0 (actual playbooks)
+---
+
 # ACMT HPC Cluster — Ansible Runbook
 
 ## 環境概覽

@@ -1,32 +1,61 @@
+---
+title: ACMT HPC Cluster — Monitoring & Alerting
+type: Reference + Operations
+last_updated: 2026-05-22
+source_of_truth: This file (topology, rule templates); `/etc/prometheus/`, `/etc/alertmanager/` (live config); `STATUS.md` §1.2 (open TODO)
+---
+
 # ACMT HPC Cluster — Monitoring & Alerting
+
+> **動態狀態請以指令查詢**（targets 健康、active alerts、SMTP 設定狀態）。本檔記錄 **infrastructure topology 與設定模板**，open issues 見 [`STATUS.md`](STATUS.md) §1.2。
 
 ## 1. Infrastructure Overview
 
-| Component | Host | Port | Status |
-|-----------|------|------|--------|
-| Prometheus | acmt0 | 9090 | ✅ Running |
-| Grafana | acmt0 | 3000 | ✅ Running |
-| Alertmanager | acmt0 | — | ❌ **Not installed** |
-| node_exporter | All nodes | 9100 | ✅ Running (see §1.1) |
-| slurm_exporter | acmt0 | 8080 | ✅ Running |
+| Component | Host | Port | Deployment |
+|-----------|------|------|------------|
+| Prometheus | acmt0 | 9090 | Deployed |
+| Grafana | acmt0 | 3000 | Deployed |
+| Alertmanager | acmt0 | 9093 | Deployed (v0.27.0, 2026-05-21) |
+| node_exporter | All nodes | 9100 | Deployed |
+| slurm_exporter | acmt0 | 8080 | Deployed |
 
-### 1.1 Prometheus Targets Currently Scraped
+執行狀態檢查：
 
+```bash
+systemctl status prometheus grafana-server alertmanager
+curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {instance: .labels.instance, health}'
 ```
-local:    acmt0 (head), localhost (prometheus, slurm_exporter)
-mgmt:     acmt-storage, acmt01-15, acmt-gpu  (.10-.26, .32)
-missing:  acmt16-27 (NOT in prometheus.yml — config gap!)
-```
 
-**Gap**: 12 nodes (acmt16~27) are missing from `scrape_configs` in `/etc/prometheus/prometheus.yml`. Even though some are down, running nodes (acmt18-21,27) should be added.
+### 1.1 Prometheus Scrape Targets
 
-### 1.2 Current Alerting State
+設定檔：`/etc/prometheus/prometheus.yml`
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Alert rules | ❌ **None** | Prometheus has zero alerting rules |
-| Alertmanager | ❌ **Not installed** | No notification routing |
-| Notifications | ❌ **None** | No email/Slack/webhook configured |
+| Group | Hosts |
+|-------|-------|
+| local | acmt0 (head), localhost (prometheus, slurm_exporter) |
+| mgmt | acmt-storage, acmt01-15, acmt-gpu (.10-.26, .32) |
+| mgmt-2 | acmt16-27 (加入於 2026-05-21) |
+
+> 即時健康狀態：`curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | select(.health!="up")'`
+>
+> 部分節點預期離線（見 STATUS.md §1.1）— 該 targets 會回報 `down`，屬已知狀況。
+>
+> **目前 down 的 node_exporter targets（2026-05-22 scan）**：
+> - acmt14 (192.168.1.25) — 對應 ISS-NODE-04（節點同時 Slurm DRAINED）
+> - acmt15 在 Prom 端 up，但 acmt14/16/17/25/26 顯示 down；其中 **acmt25 Slurm 已恢復 idle 但 node_exporter 仍未上線**（ISS-NODE-08）
+> - acmt16/17 (.27/.28) — 對應 ISS-NODE-06/07（節點本身 down 自 2025-07-21）
+> - acmt26 (.38) — 對應 ISS-NODE-09（節點本身 down 自 2026-03-19）
+
+### 1.2 Alerting Pipeline
+
+| Component | Deployment | Config Path |
+|-----------|------------|-------------|
+| Alert rules | Deployed (9 rules, 2026-05-21) | `/etc/prometheus/alert-rules.yml` |
+| Alertmanager | Deployed (v0.27.0, systemd-managed) | `/etc/alertmanager/alertmanager.yml` |
+| Email notifications | **TODO: SMTP smarthost 未設定** | 同上 (`global.smtp_smarthost`) |
+| Slack / webhook | **TODO: 尚未配置** | 同上 (`receivers`) |
+
+> 完整 TODO 細節見 [`STATUS.md`](STATUS.md) §1.2 (ISS-SVC-01 ~ ISS-SVC-04)。
 
 ---
 
@@ -278,11 +307,11 @@ alerting:
 
 ### 4.1 Currently Available
 
-| Channel | Status | Config |
-|---------|--------|--------|
-| Email (SMTP) | ❌ Not configured | Needs SMTP server info |
-| Slack | ❌ Not configured | Needs webhook URL |
-| Grafana UI | ✅ Available | Login at http://acmt0:3000 |
+| Channel | Deployment | Config | Tracked Issue |
+|---------|------------|--------|---------------|
+| Email (SMTP) | Receiver 設定存在但 smarthost 未填 | `/etc/alertmanager/alertmanager.yml` | STATUS.md ISS-SVC-01 |
+| Slack | 未配置 | webhook URL 待提供 | STATUS.md ISS-SVC-04 |
+| Grafana UI | Available | http://acmt0:3000 | — |
 
 ### 4.2 Recommended Setup
 
@@ -344,13 +373,19 @@ alerting:
 
 ## 7. Monitoring Gaps & Action Items
 
-- [ ] Add missing nodes (acmt16-27) to `/etc/prometheus/prometheus.yml`
-- [ ] Create `/etc/prometheus/alert-rules.yml` with rules from §2
-- [ ] Install and configure Alertmanager with email notifications
-- [ ] Set up Grafana dashboards (Node Exporter Full + Slurm)
-- [ ] Determine and configure SMTP server for alert notifications
-- [ ] Define on-call rotation or escalation contacts (currently none)
-- [ ] Add alert for NFS mount health (`node_filesystem_avail_bytes{mountpoint="/home"}`)
+已解決項（2026-05-21 完成，見 `maintenance-log.md`）：
+
+- [x] Added acmt16-27 to `/etc/prometheus/prometheus.yml`
+- [x] Created `/etc/prometheus/alert-rules.yml` (9 rules)
+- [x] Installed Alertmanager v0.27.0 with systemd service
+- [x] Wired Alertmanager into Prometheus alerting config
+
+未解項（追蹤於 [`STATUS.md`](STATUS.md) §1.2）：
+
+- **TODO (ISS-SVC-01)**：設定 SMTP smarthost 並驗證 email 告警
+- **TODO (ISS-SVC-02)**：定義 on-call / receiver list
+- **TODO (ISS-SVC-03)**：補 NFS mount health alert（`node_filesystem_avail_bytes{mountpoint="/home"}`）
+- **TODO (ISS-SVC-04)**：匯入 Grafana dashboards（Node Exporter Full + Slurm）
 
 ---
 

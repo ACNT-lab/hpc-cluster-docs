@@ -1,4 +1,13 @@
+---
+title: ACMT HPC Cluster — Maintenance Log
+type: Log (append-only)
+last_updated: 2026-05-22
+source_of_truth: This file (canonical history of cluster changes)
+---
+
 # ACMT HPC Cluster — Maintenance Log
+
+> 新事件請以最新日期為頂，沿用本檔下方的 Template 格式。已解決的 issue 請從 [`STATUS.md`](STATUS.md) 移除並在此留紀錄。
 
 ## Format
 

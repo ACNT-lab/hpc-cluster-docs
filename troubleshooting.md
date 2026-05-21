@@ -1,3 +1,10 @@
+---
+title: ACMT HPC Cluster — Troubleshooting Decision Tree
+type: Operations
+last_updated: 2026-05-22
+source_of_truth: This file (diagnostic procedures); `STATUS.md` §1 (current known issues)
+---
+
 # ACMT HPC Cluster — Troubleshooting Decision Tree
 
 通用原則:

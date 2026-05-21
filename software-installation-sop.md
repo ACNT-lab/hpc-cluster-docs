@@ -1,3 +1,10 @@
+---
+title: ACMT HPC Cluster — Software Installation SOP
+type: Operations (SOP)
+last_updated: 2026-05-22
+source_of_truth: This file (procedure); `/opt/modulefiles/` (installed modules)
+---
+
 # ACMT HPC Cluster — Software Installation SOP
 
 ## 1. Overview

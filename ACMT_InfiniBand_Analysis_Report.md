@@ -1,8 +1,17 @@
-# ACMT HPC集群 InfiniBand 實現狀況報告
+---
+title: ACMT HPC 集群 InfiniBand 實現狀況報告
+type: Snapshot
+last_updated: 2026-01-25
+source_of_truth: This file (frozen analysis snapshot at 2026-01-25)
+---
+
+# ACMT HPC 集群 InfiniBand 實現狀況報告
 
 **生成時間**: 2026-01-25  
 **檢查節點**: acmt0 (headnode)  
-**報告範圍**: InfiniBand硬體配置、網路拓撲、連接狀態
+**報告範圍**: InfiniBand 硬體配置、網路拓撲、連接狀態
+
+> 本檔為一次性分析快照（Snapshot）。若需即時 IB fabric 狀態，請於 acmt0 執行 `ibstat`、`ibnetdiscover`、`ibdiagnet`。
 
 ## 硬體配置概況
 

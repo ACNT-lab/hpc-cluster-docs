@@ -1,3 +1,10 @@
+---
+title: ACMT HPC Cluster — Tools & Commands Reference
+type: Reference
+last_updated: 2026-05-22
+source_of_truth: This file (command reference); 各工具自身的 `--help`
+---
+
 # ACMT HPC Cluster — Tools & Commands Reference
 
 ## 命名規範

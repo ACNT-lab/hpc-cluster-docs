@@ -1,3 +1,10 @@
+---
+title: ACMT HPC Cluster — Network Topology
+type: Reference
+last_updated: 2026-05-22
+source_of_truth: This file (physical topology, IP mapping); `/etc/netplan/` on each host (live config)
+---
+
 # ACMT HPC Cluster — Network Topology
 
 ## 1. Physical Topology Overview
