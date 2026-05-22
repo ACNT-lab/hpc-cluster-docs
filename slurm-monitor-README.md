@@ -7,7 +7,7 @@ source_of_truth: This file (feature overview); `/root/slurm-monitor/` on acmt0 (
 
 # Slurm Monitor
 
-TUI 工具監控 Slurm/HPC cluster 狀態，使用 Go + Bubble Tea 實作。
+TUI 工具監控 Slurm/HPC cluster 狀態，使用 Go + Bubble Tea 實作。命令列等價指令（`sinfo`、`squeue`、`scontrol show node` 等）見 [tools-commands.md](tools-commands.md)。
 
 ## 功能
 
@@ -125,18 +125,6 @@ ssh acmt01
 └─────────────────────────────┘
 ```
 
-┌─────────────────────────────┐
-│   Keyboard Shortcuts         │
-│                             │
-│ 1-4 Switch tabs...           │
-│ ←/→/Tab Switch tabs          │
-│ F1 Toggle this help panel    │
-│ Ctrl+C Quit                  │
-│                             │
-│ Press F1 to close           │
-└─────────────────────────────┘
-```
-
 ## 標籤頁說明
 
 ### Dashboard（總覽）
@@ -171,24 +159,6 @@ ssh acmt01
 
 ### Controller
 顯示 Slurm controller 狀態和調度器統計
-
-
-## 快捷鍵面板
-
-按 `F1` 鍵顯示/隱藏鍵盤快捷鍵幫助面板：
-
-```
-┌─────────────────────────────┐
-│   Keyboard Shortcuts         │
-│                             │
-│ 1-4 Switch tabs...           │
-│ ←/→/Tab Switch tabs          │
-│ F1 Toggle this help panel    │
-│ Ctrl+C Quit                  │
-│                             │
-│ Press F1 to close           │
-└─────────────────────────────┘
-```
 
 ## Refresh 策略
 

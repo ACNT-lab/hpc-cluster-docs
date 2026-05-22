@@ -12,6 +12,8 @@ source_of_truth: This file (diagnostic procedures); `STATUS.md` §1 (current kno
 2. 由外而內檢查: 網路 → 服務 → 設定 → 硬體
 3. 記錄操作前狀態，以便復原
 
+**Related docs**: 目前已知 issue / 節點狀態見 [STATUS.md §1](STATUS.md)；告警規則與監控配置見 [monitoring-alerting.md](monitoring-alerting.md)；常用排查指令彙整於 [tools-commands.md](tools-commands.md)。
+
 ---
 
 ## 1. 節點離線 (NODE NOT_RESPONDING / DOWN)
@@ -79,19 +81,7 @@ source_of_truth: This file (diagnostic procedures); `STATUS.md` §1 (current kno
         └─ 作業可能已完成或被取消，檢查 squeue
 ```
 
-### 已知離線節點 (不需處理)
-| 節點 | IP | 原因 |
-|------|-----|------|
-| acmt08 | 192.168.1.19 | 網路無回應 |
-| acmt16 | 192.168.1.27 | 網路無回應 |
-| acmt17 | 192.168.1.28 | 網路無回應 |
-| acmt26 | 192.168.1.38 | 網路無回應 |
-
-### 已知 Drain 節點
-| 節點 | IP | 原因 |
-|------|-----|------|
-| acmt14 | 192.168.1.25 | 記憶體不足 |
-| acmt15 | 192.168.1.26 | 記憶體不足 |
+> 離線/Drain 節點狀態請見 [STATUS.md §1](STATUS.md) — 該檔每次 live scan 後更新，不要在本檔內快照。
 
 ---
 
@@ -470,14 +460,14 @@ echo "=== 9. Job Queue Summary ==="
 squeue -o "%T" --noheader | sort | uniq -c
 
 echo "=== 10. Node Ping Test ==="
-for node in acmt0{1..27} acmt-gpu acmt-storage acmt0; do
+for node in acmt{01..27} acmt-gpu acmt-storage acmt0; do
   ping -c 1 -W 2 $node >/dev/null 2>&1 \
     && echo "$node: OK" \
     || echo "$node: FAIL"
 done
 
 echo "=== 11. NFS Mount Check ==="
-for node in acmt0{1..15} acmt{18..27} acmt-gpu; do
+for node in acmt{01..15} acmt{18..27} acmt-gpu; do
   ssh -o ConnectTimeout=3 $node "mount | grep -q nfs && echo '$node: OK' || echo '$node: FAIL'" 2>/dev/null \
     || echo "$node: UNREACHABLE"
 done

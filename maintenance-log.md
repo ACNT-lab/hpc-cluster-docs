@@ -31,6 +31,26 @@ Every entry follows this template:
 
 ---
 
+## 2026-05-22: Documentation reorg + LDAP password redaction
+
+**Category**: other (documentation)
+**Author**: claude+latteine
+**Duration**: same session
+**Nodes affected**: none (docs only)
+**Services affected**: none (docs only; LDAP password rotation still pending on admin side — see CHANGELOG.md)
+**Summary**: Repo-wide doc reorg + Notion server-manual rewrite; redacted leaked LDAP bind password from security-policy.md; applied 14 prioritized markdown fixes (see CHANGELOG.md).
+**Details**:
+- Reconciled stale node states across `network-topology.md`, `troubleshooting.md`, `ansible-runbook.md`, `AGENTS.md` — STATUS.md is now the single source-of-truth for node state.
+- Fixed brace-expansion bug `acmt0{1..27}` → `acmt{01..27}` in health-check loops.
+- Resolved `ISS-SVC-04` ID collision (Slack moved to `ISS-SVC-05`).
+- Marked `ACMT_InfiniBand_Analysis_Report.md` as SUPERSEDED.
+- Deduplicated keyboard-shortcut sections in `slurm-monitor-README.md`; closed unbalanced code fence in `ansible-runbook.md`.
+- Added cross-references across previously orphan files.
+**Rollback**: `git revert <commit-hash>` (hash unknown at draft time; check `git log` after commit lands).
+**Verification**: `scripts/check-secrets.sh` exits 0 on the working tree (covers the historical bind password + other generic secret patterns); code fences in `ansible-runbook.md` are balanced (even count via `awk` line-counter).
+
+---
+
 ## 2026-05-21: GSL 2.8 installation
 
 **Category**: software-install

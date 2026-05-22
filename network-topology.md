@@ -62,41 +62,43 @@ source_of_truth: This file (physical topology, IP mapping); `/etc/netplan/` on e
 
 ### 3.2 Node IP Assignments
 
-| Hostname | IP | MAC | Status | Switch Port |
-|----------|----|-----|--------|-------------|
-| **acmt0** (head) | 192.168.1.10 | — | Online | TBD |
-| **acmt-storage** | 192.168.1.11 | 38:63:bb:3b:c5:28 | Online | TBD |
-| **acmt-gpu** | 192.168.1.32 | 74:56:3c:07:43:85 | Online | TBD |
-| acmt01 | 192.168.1.12 | c8:1f:66:d8:62:e3 | Online | TBD |
-| acmt02 | 192.168.1.13 | c8:1f:66:f0:ea:4f | Online | TBD |
-| acmt03 | 192.168.1.14 | — | **DOWN** | TBD |
-| acmt04 | 192.168.1.15 | ec:f4:bb:de:ed:e0 | Online | TBD |
-| acmt05 | 192.168.1.16 | ec:f4:bb:df:9a:d4 | Online | TBD |
-| acmt06 | 192.168.1.17 | ec:f4:bb:e8:2b:64 | Online | TBD |
-| acmt07 | 192.168.1.18 | 18:66:da:e6:bb:20 | Online | TBD |
-| acmt08 | 192.168.1.19 | b8:2a:72:e1:13:2e | **DOWN** | TBD |
-| acmt09 | 192.168.1.20 | f4:8e:38:c3:19:e4 | Online | TBD |
-| acmt10 | 192.168.1.21 | f4:8e:38:c3:13:44 | Online | TBD |
-| acmt11 | 192.168.1.22 | f4:8e:38:c3:0a:c8 | Online | TBD |
-| acmt12 | 192.168.1.23 | — | **DOWN** | TBD |
-| acmt13 | 192.168.1.24 | f4:8e:38:c3:17:6c | Online | TBD |
-| acmt14 | 192.168.1.25 | — | **DRAINED** | TBD |
-| acmt15 | 192.168.1.26 | f4:8e:38:c3:0a:84 | **DRAINED** | TBD |
-| acmt16 | 192.168.1.27 | — | **DOWN** | TBD |
-| acmt17 | 192.168.1.28 | — | **DOWN** | TBD |
-| acmt18 | 192.168.1.29 | 98:f2:b3:0b:5a:1c | Online | TBD |
-| acmt19 | 192.168.1.30 | 98:f2:b3:0b:58:84 | Online | TBD |
-| acmt20 | 192.168.1.31 | 20:04:0f:f1:2f:ac | Online | TBD |
-| acmt21 | 192.168.1.33 | 80:30:e0:39:9d:28 | Online | TBD |
-| acmt22 | 192.168.1.34 | 20:67:7c:ef:ce:5c | Online | TBD |
-| acmt23 | 192.168.1.35 | 20:67:7c:e3:fe:dc | Online | TBD |
-| acmt24 | 192.168.1.36 | 20:67:7c:f1:1a:44 | Online | TBD |
-| acmt25 | 192.168.1.37 | 20:67:7c:e3:81:80 | **DRAINED** | TBD |
-| acmt26 | 192.168.1.38 | — | **DOWN** | TBD |
-| acmt27 | 192.168.1.39 | 20:67:7c:e0:1c:10 | Online | TBD |
+> **Note:** Node operational state lives in [STATUS.md §1](STATUS.md) (live scan). The Status column is removed from this table to avoid drift; this file tracks only the static IP/MAC mapping.
+
+| Hostname | IP | MAC | Switch Port |
+|----------|----|-----|-------------|
+| **acmt0** (head) | 192.168.1.10 | — | TBD |
+| **acmt-storage** | 192.168.1.11 | 38:63:bb:3b:c5:28 | TBD |
+| **acmt-gpu** | 192.168.1.32 | 74:56:3c:07:43:85 | TBD |
+| acmt01 | 192.168.1.12 | c8:1f:66:d8:62:e3 | TBD |
+| acmt02 | 192.168.1.13 | c8:1f:66:f0:ea:4f | TBD |
+| acmt03 | 192.168.1.14 | — | TBD |
+| acmt04 | 192.168.1.15 | ec:f4:bb:de:ed:e0 | TBD |
+| acmt05 | 192.168.1.16 | ec:f4:bb:df:9a:d4 | TBD |
+| acmt06 | 192.168.1.17 | ec:f4:bb:e8:2b:64 | TBD |
+| acmt07 | 192.168.1.18 | 18:66:da:e6:bb:20 | TBD |
+| acmt08 | 192.168.1.19 | b8:2a:72:e1:13:2e | TBD |
+| acmt09 | 192.168.1.20 | f4:8e:38:c3:19:e4 | TBD |
+| acmt10 | 192.168.1.21 | f4:8e:38:c3:13:44 | TBD |
+| acmt11 | 192.168.1.22 | f4:8e:38:c3:0a:c8 | TBD |
+| acmt12 | 192.168.1.23 | — | TBD |
+| acmt13 | 192.168.1.24 | f4:8e:38:c3:17:6c | TBD |
+| acmt14 | 192.168.1.25 | — | TBD |
+| acmt15 | 192.168.1.26 | f4:8e:38:c3:0a:84 | TBD |
+| acmt16 | 192.168.1.27 | — | TBD |
+| acmt17 | 192.168.1.28 | — | TBD |
+| acmt18 | 192.168.1.29 | 98:f2:b3:0b:5a:1c | TBD |
+| acmt19 | 192.168.1.30 | 98:f2:b3:0b:58:84 | TBD |
+| acmt20 | 192.168.1.31 | 20:04:0f:f1:2f:ac | TBD |
+| acmt21 | 192.168.1.33 | 80:30:e0:39:9d:28 | TBD |
+| acmt22 | 192.168.1.34 | 20:67:7c:ef:ce:5c | TBD |
+| acmt23 | 192.168.1.35 | 20:67:7c:e3:fe:dc | TBD |
+| acmt24 | 192.168.1.36 | 20:67:7c:f1:1a:44 | TBD |
+| acmt25 | 192.168.1.37 | 20:67:7c:e3:81:80 | TBD |
+| acmt26 | 192.168.1.38 | — | TBD |
+| acmt27 | 192.168.1.39 | 20:67:7c:e0:1c:10 | TBD |
 
 > **Note**: Switch port columns are TBD — fill in after physical inspection.
-> 6 nodes have no MAC in ARP table (offline/unreachable).
+> Some entries have no MAC in ARP table (offline/unreachable at last scan; see STATUS.md §1).
 
 ---
 

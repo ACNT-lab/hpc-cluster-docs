@@ -14,7 +14,7 @@ source_of_truth: This file (for issues/TODOs); `acmt`/`sinfo`/`squeue` (for live
 > - **不寫死當前節點/作業/佔用率快照** — 這些用指令動態抓取（見 §3）。
 > - **只記錄需被追蹤的事**：尚未解決的 issue、待辦、跨會話有意義的觀察。
 > - **每筆 issue 都標 `TODO:`** — 含目標狀態與下一步動作。
-> - 解決後請移至 `maintenance-log.md` 並從此處刪除。
+> - 解決後請移至 [maintenance-log.md](maintenance-log.md) 並從此處刪除；批次處理流程見 [ansible-runbook.md](ansible-runbook.md)。
 
 ---
 
@@ -48,6 +48,12 @@ source_of_truth: This file (for issues/TODOs); `acmt`/`sinfo`/`squeue` (for live
 | ISS-SVC-02 | 告警 on-call rotation | 未定義收件人 | 確認管理員 email / 通知群組 | P3 |
 | ISS-SVC-03 | NFS mount health alert | 未加入 alert-rules.yml | 補上 `node_filesystem_avail_bytes{mountpoint="/home"}` 規則 | P3 |
 | ISS-SVC-04 | Grafana dashboards | Node Exporter Full / Slurm dashboard 尚未匯入 | 匯入並設 default | P3 |
+| ISS-SVC-05 | Slack webhook 未配置 | `alertmanager.yml` receiver 未設 Slack webhook URL | 取得 Slack incoming webhook 並設定 receiver | P4 |
+| ISS-CFG-GRES | acmt-gpu GRES 數量不一致 | `slurm.conf` 宣告 `Gres=gpu:4` 但 `gres.conf` 為 `/dev/nvidia[0-1]`（只 2 顆 device file） | 比對 acmt-gpu 實際 `lspci \| grep -i nvidia` 數量，調整其中一份設定 | **P1** |
+| ISS-CFG-HOSTS | `update_hosts` ansible role 不完整 | `roles/update_hosts/vars/main.yml` 只含 18 筆，缺 acmt16-27 | 補齊 vars 或改用 inventory 動態生成 | P3 |
+| ISS-CFG-PROMTGT | Prometheus target list 硬編碼且跳過離線節點 | `prometheus.yml.j2` 略過 acmt16/17 — 即使節點復原也不會自動納監控 | 改用 ansible-inventory 動態生成 targets | P3 |
+| ISS-CFG-NEWNODE | `acmt-new-node.yml` 與 `acmt.yml` 完全相同 | 兩份 playbook 內容逐行一致 — 沒有差異化 | 決定是否分化（new-node 加入 nvidia driver / infiniband），或刪除其中一份 | P4 |
+| ISS-CFG-ROLES | `nvidia.nvidia_driver` 與 `infiniband` roles 未在任何 playbook | 兩個 role 存在 `roles/` 但不被引用 — 驅動安裝目前是手動 | 把它們納入適當 playbook（或新增 `acmt-gpu-bootstrap.yml`），記錄手動執行步驟 | P3 |
 
 **TODO 對應動作**
 
@@ -55,6 +61,17 @@ source_of_truth: This file (for issues/TODOs); `acmt`/`sinfo`/`squeue` (for live
 - **TODO (ISS-SVC-02)**：與管理員確認 alert receiver list，更新 `alertmanager.yml`。
 - **TODO (ISS-SVC-03)**：在 `/etc/prometheus/alert-rules.yml` 新增 NFS 規則，`curl -X POST http://localhost:9090/-/reload`。
 - **TODO (ISS-SVC-04)**：登入 Grafana → import 1860 (Node Exporter Full) + Slurm dashboard。
+- **TODO (ISS-SVC-05)**：取得 Slack incoming webhook URL，於 `/etc/alertmanager/alertmanager.yml` 新增 `slack_configs` receiver，`systemctl reload alertmanager` 驗證。
+- **TODO (ISS-CFG-GRES)**：**P1** — **已修正於 acmt-ansible branch `cluster-state-sync-2026-05-22` commit `a5d2e5d`**（已確認 acmt-gpu 實測 4 顆 P100，`gres.conf` 已改為 `[0-3]`）。**待 deploy**：`ansible-playbook acmt-slurm.yml -l acmt-gpu` → `ssh acmt-gpu systemctl restart slurmd` → `scontrol reconfigure` → `srun -p gpu --gres=gpu:4 nvidia-smi -L` 驗證。
+- **TODO (ISS-CFG-HOSTS)**：**已修正於 commit `10b6ca2`，已 deploy 完成 2026-05-22 15:25 UTC** — `ansible-playbook acmt.yml -t update_hosts` 跑過全部節點 `ok=1 changed=0`（已在所有可達節點 idempotent 確認），5 個離線節點略過（acmt14/16/17/25/26，符合 STATUS §1.1）。
+- **TODO (ISS-CFG-PROMTGT)**：**已處理於 commits `66d3ef9` + `a23ce2e`（PR #2 待 review）**。
+	- 預先 dry-diff 發現 `/etc/prometheus/prometheus.yml` 部署版已含手動加的 `rule_files` + `alerting:` 區段，直接跑 playbook 會 regress。
+	- 補上 backport branch `prom-template-backport-2026-05-22`（PR #2: https://github.com/AC-T-lab/acmt-ansible/pull/2）把 alerting 設定與 inline comments 拉回 template。
+	- merge 後再 deploy 就不會掉設定。**長期 follow-up**：改用 Jinja loop 從 `groups['acmt']` 動態產生 targets。
+- **TODO (ISS-CFG-NEWNODE)**：團隊討論：是否要分化兩份 playbook？建議：保留 `acmt.yml` 為完整重部署，把 `acmt-new-node.yml` 增加 nvidia driver bootstrap + Slurm DB user create。**未處理**。
+- **TODO (ISS-CFG-ROLES)**：把 `nvidia.nvidia_driver` 加入 `acmt-new-node.yml` (when `gpu`)，把 `infiniband` 加入 `acmt.yml`；或者建立獨立 `acmt-gpu-bootstrap.yml` + `acmt-ib.yml` 並在 README 文件化手動執行步驟。**未處理**。
+
+> **acmt-ansible branch 待 admin 審核**：`cluster-state-sync-2026-05-22`（5 commits, +93 -43 across 14 files, 未 push）。內容含：(1) 合併 admin 既有未 commit WIP；(2) ISS-CFG-GRES P1 修正；(3) ISS-CFG-HOSTS 補齊；(4) prometheus targets 還原離線節點。審核：`ssh admin "cd /root/acmt-ansible && git log main..HEAD --stat"`；合併方式建議 `git merge --ff-only` 或 PR。
 
 ### 1.3 安全強化（追蹤項，詳見 security-policy.md）
 
@@ -152,7 +169,7 @@ ansible acmt -m ping -o
 
 ## 4. 變更記錄
 
-> 本檔變動本身請在此處留短紀錄（一行即可）；實際 cluster 變更請寫到 `maintenance-log.md`。
+> 本檔變動本身請在此處留短紀錄（一行即可）；實際 cluster 變更請寫到 [maintenance-log.md](maintenance-log.md)。
 
 - 2026-05-22: 從 AGENTS.md 與 ACMT_HPC_Cluster_Nodes_Configuration.md 拆出 state，建立此檔。
 - 2026-05-22: 經 live SSH scan 確認 acmt03/08/12/15 已恢復、acmt25 Slurm 端已恢復；ISS-NODE-01/02/03/05 結案，ISS-NODE-08 改寫為 node_exporter 問題；新增 ISS-NODE-10 (acmt-gpu NVML)；更新 acmt14/16/17/26 的精確起始時間。

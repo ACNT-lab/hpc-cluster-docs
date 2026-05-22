@@ -2,7 +2,7 @@
 title: ACMT HPC Cluster — Ansible Runbook
 type: Operations
 last_updated: 2026-05-22
-source_of_truth: This file (procedures); `/root/acmt-ansible/ansible/` on acmt0 (actual playbooks)
+source_of_truth: This file (procedures); `/root/acmt-ansible/ansible/` on acmt0 (actual deployed playbooks); https://github.com/AC-T-lab/acmt-ansible (canonical git repo, private)
 ---
 
 # ACMT HPC Cluster — Ansible Runbook
@@ -36,7 +36,7 @@ ansible acmt -m ping -o
 # 預期結果範例:
 # 192.168.1.10 | SUCCESS => {"ping": "pong"}
 # 192.168.1.12 | SUCCESS => {"ping": "pong"}
-# 192.168.1.19 | UNREACHABLE! => acmt08 離線 (正常現象)
+# 192.168.1.19 | UNREACHABLE! => 離線節點 (正常現象；see STATUS.md §1 for current offline nodes)
 
 # 檢查無法連線的節點
 ansible acmt -m ping -o 2>&1 | grep UNREACHABLE
@@ -46,7 +46,7 @@ ansible acmt -m ping -o 2>&1 | grep SUCCESS | cut -d' ' -f1
 ```
 
 **通用注意事項:**
-- 離線節點 (acmt08, acmt16-17, acmt26) 會回報 UNREACHABLE，這是預期行為
+- 離線節點 (see STATUS.md §1 for current offline nodes) 會回報 UNREACHABLE，這是預期行為
 - 若有非預期的 UNREACHABLE 節點，先執行故障排除
 - 需 root SSH 金鑰已複製到所有節點
 
@@ -121,7 +121,7 @@ ansible acmt -m shell -a "module avail 2>&1 | head -10"
 |------|------|----------|
 | `mysql-server` 安裝失敗 | 非 head 節點不會安裝，這是正常的 | 無需處理 |
 | `munge.key` 權限錯誤 | 非 head 節點缺少 munge.key | 手動複製: `scp /etc/munge/munge.key acmtXX:/etc/munge/` |
-| 離線節點錯誤 | acmt08, acmt16-17, acmt26 離線 | `--limit` 排除，或忽略錯誤 |
+| 離線節點錯誤 | see STATUS.md §1 for current offline nodes | `--limit` 排除，或忽略錯誤 |
 
 ---
 
@@ -177,7 +177,11 @@ diff /tmp/sinfo_before.txt <(sinfo -N -l)
 ## Playbook 3: `acmt-new-node.yml` — 新節點部署
 
 ### 用途
-新增計算節點到集群時使用。執行與 `acmt.yml` 相同的角色。
+新增計算節點到集群時使用。
+
+<callout icon="⚠️" color="yellow_bg">
+**目前 `acmt-new-node.yml` 與 `acmt.yml` 完全相同**（兩份檔案逐行一致）— 它們執行完全相同的 7 個角色。建議透過 `-l acmtXX` 限定新節點即可，或日後分化兩份檔案（例如 new-node 加入 nvidia driver / infiniband bootstrap）。追蹤於 STATUS.md ISS-CFG-NEWNODE。
+</callout>
 
 ### 前置作業
 
@@ -273,7 +277,7 @@ ansible acmt -m shell -a "[ -f /var/run/reboot-required ] && echo REBOOT || echo
 ## Playbook 5: `acmt-monitoring.yml` — 監控系統部署
 
 ### 用途
-部署 Prometheus + Grafana + Node Exporters + Slurm Exporter。
+部署 Prometheus + Grafana + Node Exporters + Slurm Exporter。告警規則、dashboard 列表與已知監控 gap 見 [monitoring-alerting.md](monitoring-alerting.md)；當前未解告警/服務問題見 [STATUS.md §1.2](STATUS.md)。
 
 ### 執行角色順序
 
@@ -344,22 +348,23 @@ ansible acmt -m include_role -a name=nfs -l acmt03
 
 ## 角色詳情速查
 
-| 角色 | 功能摘要 | 關鍵變數/檔案 | 運行條件 |
+依實際 `roles/` 目錄共 13 個角色。**Playbook 是否使用**欄位反映 2026-05-22 對 `/root/acmt-ansible/ansible/*.yml` 的掃描結果。
+
+| 角色 | 功能摘要 | 關鍵變數/檔案 | Playbook 是否使用 |
 |------|----------|---------------|----------|
-| `base-package` | 基礎套件 + MySQL + Ansys deps | `head` | 全部 |
-| `env-modules` | Environment Modules + MODULEPATH | 無 | 全部 |
-| `nfs` | NFS export (storage) + mount (其他節點) | `storage`, `head`, `nfs_network` | 全部 |
-| `update_hosts` | /etc/hosts 管理，20 筆 IP 對應 | `ip_host_mappings` | 全部 |
-| `slurm` | Slurm 完整安裝設定 | `head`, `slurmd`; 關鍵檔案: `slurm.conf`, `slurmdbd.conf`, `gres.conf`, `cgroup.conf` | 全部 |
-| `ldap-client` | LDAP 認證 (伺服器 192.168.1.10) | `not head` | 非 head |
-| `docker` | Docker CE + NVIDIA Container Toolkit | `not storage` | 非 storage |
-| `apt-upgrade` | `apt upgrade` | 無 | 全部 |
-| `node_exporter` | Prometheus Node Exporter (port 9100) | `node_exporter_version: 1.8.2` | 全部 |
-| `slurm_exporter` | Prometheus Slurm Exporter (port 8080) | `slurm_exporter_version: 0.20`, `slurm_exporter_port: 8080` | head only |
-| `prometheus` | Prometheus v2.53.1 + Grafana | `prometheus_version: 2.53.1`, 24 個靜態 target | head only |
-| `infiniband` | RDMA 套件 + OpenSM (head only) | 模板含 RDMA NFS mount 設定 | 全部 |
-| `nvidia.nvidia_driver` | NVIDIA 驅動 (branch 515) | `nvidia_driver_branch: 515`, `nvidia_driver_skip_reboot` | GPU 節點 |
-| `update_hosts` | 20 筆 IP/hostname 寫入 /etc/hosts | `ip_host_mappings` 含 acmt0-15, acmt-gpu | 全部 |
+| `base-package` | 基礎套件 + MySQL (head) + Ansys deps + libldap 2.4 backport | 無變數 | acmt.yml, acmt-new-node.yml |
+| `env-modules` | Environment Modules + `/etc/profile.d/modules.sh` | files/modules.sh | acmt.yml, acmt-new-node.yml |
+| `nfs` | NFS export (storage 節點) + mount (其他節點) | `nfs_network`, `nfs_home_server`, templates: `home.mount`, `opt.mount` | acmt.yml, acmt-new-node.yml |
+| `update_hosts` | /etc/hosts 管理；**目前只涵蓋 acmt0/storage/01-15/gpu（18 筆）** | `ip_host_mappings` (vars/main.yml) | acmt.yml, acmt-new-node.yml |
+| `slurm` | Slurm 完整安裝設定 + munge key + slurm DB user | files: `slurm.conf`, `slurmdbd.conf`, `gres.conf`, `cgroup.conf` | acmt.yml, acmt-new-node.yml, acmt-slurm.yml |
+| `ldap-client` | LDAP 認證 (伺服器 192.168.1.10, base `dc=acmt`) | files: `nslcd.conf`, `nsswitch.conf`, `common-password`, `ldap.conf`, **`ldap.secret` (mode 0600)** | acmt.yml, acmt-new-node.yml (when `not head`) |
+| `docker` | Docker CE + NVIDIA Container Toolkit repo | 無變數 | acmt.yml, acmt-new-node.yml (when `not storage`) |
+| `apt-upgrade` | `apt upgrade` (one-day cache valid) | 無 | acmt-upgrade.yml |
+| `node_exporter` | Prometheus Node Exporter (port 9100) | `node_exporter_version: 1.8.2` | acmt-monitoring.yml |
+| `slurm_exporter` | Prometheus Slurm Exporter (port 8080，從 source 編譯) | `slurm_exporter_version: 0.20`, `slurm_exporter_port: 8080` | acmt-monitoring.yml (head only) |
+| `prometheus` | Prometheus v2.53.1 (含 24 個 hardcoded node_exporter target) | template: `prometheus.yml.j2` | acmt-monitoring.yml (head only) |
+| `infiniband` | 僅 `apt install rdma-core` + `opensm` (head only) | 無 | **未在任何 playbook（手動執行）** |
+| `nvidia.nvidia_driver` | NVIDIA 驅動完整安裝 (Galaxy role) | `nvidia_driver_branch: 515`, `nvidia_driver_persistence_mode_on` | **未在任何 playbook（手動執行）** |
 
 ---
 
@@ -388,3 +393,46 @@ ansible-playbook acmt-new-node.yml -l acmtXX
 # Step 7: 驗證
 scontrol show node acmtXX
 sinfo -N -l | grep acmtXX
+```
+
+---
+
+## Known Gaps / Reality Check
+
+2026-05-22 對 `/root/acmt-ansible/` 深度檢視後發現以下落差（追蹤於 STATUS.md ISS-CFG-NN）：
+
+### 1. `update_hosts` vars 不完整 — `ISS-CFG-HOSTS`
+- `roles/update_hosts/vars/main.yml` 的 `ip_host_mappings` 僅含 acmt0、acmt-storage、acmt01–15、acmt-gpu（共 18 筆）
+- 實際 `/etc/hosts` 已含 acmt16–27（10 筆額外）— 應由其他途徑加入
+- **影響**：跑 `acmt-new-node.yml` 對 acmt16+ 節點不會同步 hosts；新增的節點若不在 vars 中，整個叢集的 `/etc/hosts` 也不會更新
+- **修補**：在 `vars/main.yml` 補齊所有節點，或改用 inventory 自動生成
+
+### 2. `prometheus.yml.j2` target 名單跳過離線節點 — `ISS-CFG-PROMTGT`
+- 模板中硬編碼 24 個 `node_exporter` target，且**直接跳過 acmt16（192.168.1.27）與 acmt17（192.168.1.28）**
+- **影響**：即使 acmt16/17 復原，Prometheus 也不會自動納入監控 — 必須先編輯模板再 rerun playbook
+- **修補**：改用 inventory 動態生成 targets（`ansible-inventory` plugin），或定期重跑 `acmt-monitoring.yml` 並維護 target 清單
+
+### 3. `gres.conf` 與 `slurm.conf` GPU 數量不一致 — `ISS-CFG-GRES`
+- `slurm.conf`: `NodeName=acmt-gpu ... Gres=gpu:4`
+- `gres.conf`: `NodeName=acmt-gpu Name=gpu File=/dev/nvidia[0-1]` — **只宣告 2 顆**
+- **影響**：Slurm 認為有 4 顆 GPU 可調度，但 cgroup 只能正確隔離 2 顆 — 第 3、4 顆作業會在沒有 device file 的情況下啟動，可能 silently fail 或共享 GPU
+- **修補**：把 `gres.conf` 改為 `File=/dev/nvidia[0-3]`（若真有 4 顆物理 GPU），或把 `slurm.conf` 的 `Gres=gpu:4` 改回 `gpu:2`（需先確認實際硬體配置）
+
+### 4. `infiniband` 與 `nvidia.nvidia_driver` roles 未在任何 playbook
+- 兩個 role 都存在於 `roles/` 但不被任何 `*.yml` 引用
+- 意味著 **IB 子網路管理 (opensm) 與 NVIDIA driver 安裝都是手動執行**
+- 新 GPU 節點透過 `acmt-new-node.yml` 部署後不會自動安裝 driver；要手動跑 `ansible <node> -m include_role -a name=nvidia.nvidia_driver`
+
+### 5. `update-table` 腳本是 dead code
+- `/root/acmt-ansible/update-table` (top-level) 硬編碼 `host_roles = {'apollo': dict(), 'hades': dict()}`
+- 實際 inventory 只有 `[acmt]` group — 跑這支腳本會在 README 寫入空表
+- **修補**：要嘛改寫腳本以支援 `acmt`，要嘛刪除
+
+### 6. `nfs` exports 為 `no_root_squash` — `ISS-SEC-NFS`
+- `nfs/tasks/main.yml`：`/home {{ nfs_network }}(rw,no_root_squash,async)` 同樣設定於 `/opt`
+- 任何 compute node 的 root 可對 NFS 完全讀寫 — 安全議題（[security-policy.md §6](security-policy.md) 已記錄）
+
+### 7. `slurm` role 一律 `restart` 而非 `reload`
+- `slurmctld`、`slurmdbd`、`slurmd` 全部使用 `state: restarted` — 每次 playbook 跑都會踢掉執行中的 jobs
+- **修補**：對於只改 `slurm.conf` 的情況，使用 `scontrol reconfigure` 而非 restart；compute node 的 `slurmd` 才需要 restart
+

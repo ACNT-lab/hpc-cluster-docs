@@ -1,6 +1,15 @@
+---
+title: ACMT HPC Cluster Documentation
+type: Protocol
+last_updated: 2026-05-22
+source_of_truth: This file (index)
+---
+
 # ACMT HPC Cluster Documentation
 
 本 repository 是 **ACMT HPC cluster** (acmt0 headnode) 的 AI 維護助手知識庫，集中所有操作文件、設定參考、與流程指引。
+
+> 📅 **變更紀錄請見 [CHANGELOG.md](CHANGELOG.md)**（本文件集自身變更；cluster 變更請見 [maintenance-log.md](maintenance-log.md)）。
 
 ## Document Types
 
@@ -31,7 +40,8 @@
 | 檔案 | 說明 |
 |------|------|
 | [`STATUS.md`](STATUS.md) | **每次會話必讀** — 已知未解 issue、TODO、動態抓取指令 |
-| [`maintenance-log.md`](maintenance-log.md) | 變更歷史（append-only） |
+| [`maintenance-log.md`](maintenance-log.md) | 變更歷史（append-only），記錄 cluster 變更 |
+| [`CHANGELOG.md`](CHANGELOG.md) | 文件集本身的版本變更紀錄 |
 
 ### Operations — 流程與 SOP
 

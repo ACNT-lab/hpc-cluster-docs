@@ -305,6 +305,8 @@ ib_read_lat -d mlx5_0
 
 ### 2.4 GPU 狀態
 
+> GPU 硬體規格、partition 對應、CUDA capability 見 [ACMT_HPC_Cluster_Nodes_Configuration.md §5](ACMT_HPC_Cluster_Nodes_Configuration.md)。
+
 ```bash
 # 基本狀態
 nvidia-smi
@@ -468,7 +470,7 @@ ping -c 2 -W 2 acmt01
 ssh -o ConnectTimeout=5 acmt01 "hostname"
 
 # 批量測試所有節點
-for node in acmt0{1..27} acmt-gpu acmt-storage; do
+for node in acmt{01..27} acmt-gpu acmt-storage; do
   ping -c 1 -W 2 $node >/dev/null 2>&1 \
     && echo "$node: OK" \
     || echo "$node: FAIL"

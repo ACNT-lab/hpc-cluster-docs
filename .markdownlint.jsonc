@@ -1,0 +1,48 @@
+// markdownlint config for the ACMT HPC cluster docs.
+// Run with: markdownlint-cli2 "**/*.md"
+// or:        npx markdownlint-cli2 "**/*.md" "!**/node_modules/**"
+{
+  // Use the default rules as the baseline, then tune below.
+  "default": true,
+
+  // ─── Tuned rules ────────────────────────────────────────────────────
+
+  // MD013 (line length) — too noisy for table-heavy operator docs.
+  "MD013": false,
+
+  // MD024 (no duplicate headings) — allow duplicate section names like
+  // "### 用途" or "### 執行命令" repeating across each Playbook.
+  "MD024": { "siblings_only": true },
+
+  // MD033 (no inline HTML) — we use <callout>, <details>, <table>, <span>
+  // which Notion-flavoured markdown supports and which we mirror here.
+  "MD033": false,
+
+  // MD041 (first line should be H1) — frontmatter precedes H1 in every
+  // file by design (`title:` is set there). Lint should not flag this.
+  "MD041": false,
+
+  // MD036 (no emphasis as heading) — bold leads in tables/lists are
+  // intentional for callouts; do not flag.
+  "MD036": false,
+
+  // MD034 (no bare URLs) — keep on; convert any bare URL to a real link.
+
+  // MD040 (fenced code language) — keep on; every code block must say
+  // ```bash / ```shell / ```yaml / ```python / ```text.
+
+  // MD025 (only one H1) — keep on; every doc should have a single H1.
+
+  // MD022 / MD031 / MD032 — keep on (blank lines around headings, fences,
+  // and lists). Helps when files are concatenated for AI context.
+
+  // ─── Project-specific ignores ───────────────────────────────────────
+
+  "ignores": [
+    "node_modules/**",
+    ".git/**",
+    // CHANGELOG entries quote raw bind-password regex examples;
+    // markdownlint can flag inline-code apostrophes there.
+    ""
+  ]
+}

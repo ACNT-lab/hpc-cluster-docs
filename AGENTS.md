@@ -22,7 +22,7 @@ You are an AI assistant managing the **ACMT HPC cluster** (acmt0 headnode, 192.1
 - **Storage**: acmt-storage (192.168.1.11) — NFS exports `/home` and `/opt` (11TB total, ext4)
 - **Network**: Management `192.168.1.0/24` on eno1, InfiniBand `10.0.0.0/24` on ib0 (Mellanox ConnectX-4, 100Gb EDR)
 - **Slurm**: ClusterName=acmt, ControlMachine=acmt0, auth/munge, accounting via slurmdbd + MySQL
-- **Users**: LDAP on acmt0, 15 regular users in `lab` Slurm account + root (Administrator)
+- **Users**: LDAP on acmt0, ~15 regular users (verify via `sacctmgr show users`) in `lab` Slurm account + root (Administrator)
 - **GPU**: heterogeneous — `gpu` partition = 4 × Tesla P100 (Pascal sm_60, FP64-friendly); `r740` partition = 2 × RTX 3090 (Ampere sm_86, 24 GB VRAM, FP32-friendly). Pick partition based on workload.
 
 ## Key File Locations
@@ -111,7 +111,7 @@ Pre-checks for Ansible: `ansible acmt -m ping -o` to verify connectivity.
 | r630l | acmt08 | 1 | No | 128GB RAM |
 | r630m | acmt03,12 | 1 | No | 154GB RAM |
 | r630s | acmt09-11,13-15 | 1 | **YES** | Default partition (15GB/node — watch mem requests) |
-| apollo | acmt16-19 | 1 | No | Silver 4114 (acmt16-17 down since 2025-07-21) |
+| apollo | acmt16-19 | 1 | No | Silver 4114 (some nodes may be offline — see STATUS.md) |
 | r740 | acmt20 | 1 | No | GPU node — 2 × RTX 3090 24GB (Ampere sm_86) |
 | gpu | acmt-gpu | 1 | No | GPU node — 4 × Tesla P100 16GB (Pascal sm_60), OverSubscribe=YES |
 | dl360 | acmt21-26 | 1 | No | Gold 6142 |
@@ -136,7 +136,7 @@ sinfo -R             # 列出所有 down/drain 節點與原因
 - Only one Slurm account: `lab`
 - Only one QoS: `normal` (Priority=0)
 - Root is the only Administrator
-- 15 regular users (all in `lab` group)
+- ~15 regular users (verify via `sacctmgr show users`; all in `lab` group)
 - Scheduler: `sched/builtin` with multifactor priority
 - `PriorityDecayHalfLife=30`, `PriorityCalcPeriod=3`
 

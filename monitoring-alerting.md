@@ -55,7 +55,7 @@ curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {inst
 | Email notifications | **TODO: SMTP smarthost 未設定** | 同上 (`global.smtp_smarthost`) |
 | Slack / webhook | **TODO: 尚未配置** | 同上 (`receivers`) |
 
-> 完整 TODO 細節見 [`STATUS.md`](STATUS.md) §1.2 (ISS-SVC-01 ~ ISS-SVC-04)。
+> 完整 TODO 細節見 [`STATUS.md`](STATUS.md) §1.2 (ISS-SVC-01 ~ ISS-SVC-05)。
 
 ---
 
@@ -310,7 +310,7 @@ alerting:
 | Channel | Deployment | Config | Tracked Issue |
 |---------|------------|--------|---------------|
 | Email (SMTP) | Receiver 設定存在但 smarthost 未填 | `/etc/alertmanager/alertmanager.yml` | STATUS.md ISS-SVC-01 |
-| Slack | 未配置 | webhook URL 待提供 | STATUS.md ISS-SVC-04 |
+| Slack | 未配置 | webhook URL 待提供 | STATUS.md ISS-SVC-05 |
 | Grafana UI | Available | http://acmt0:3000 | — |
 
 ### 4.2 Recommended Setup

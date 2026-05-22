@@ -259,7 +259,7 @@ squeue -u root
 
 ### 4.3 ⚠️ Critical: `module` Command in Slurm Jobs
 
-The `module` command is initialized via `/etc/profile.d/modules.sh`, which runs only for **interactive login shells**. Slurm batch jobs run as **non-interactive non-login shells** by default, so `module` is NOT available inside job scripts.
+Environment Modules is initialized for login shells by `/etc/profile.d/modules.sh` (a thin wrapper); inside Slurm batch shells you must source the underlying `/usr/share/modules/init/bash` directly (see workarounds in §4.3 below). Slurm batch jobs run as **non-interactive non-login shells** by default, so `module` is NOT available inside job scripts without this.
 
 **Symptoms**: `module: command not found` in job output. The script silently falls back to system defaults (e.g., system GCC instead of loaded module).
 
@@ -484,7 +484,7 @@ setfacl -R -m d:g:lab:rx /opt/<name>/<version>
 
 ### 9.1 Install Log Template
 
-Every installation should be logged:
+Every installation should be logged. The cluster-wide change history (including software installs that affect users) lives in [maintenance-log.md](maintenance-log.md) — follow that file's template for entries that touch user-visible behaviour.
 
 ```bash
 cat >> /var/log/software-install/README << 'LOG'
