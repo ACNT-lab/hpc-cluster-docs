@@ -1,15 +1,19 @@
 ---
-title: ACMT HPC Cluster — Software Installation SOP
+title: ACMT HPC Cluster — Software Installation SOP | ACMT HPC 集群 — 軟體安裝 SOP
 type: Operations (SOP)
 last_updated: 2026-05-22
 source_of_truth: This file (procedure); `/opt/modulefiles/` (installed modules)
 ---
 
-# ACMT HPC Cluster — Software Installation SOP
+# ACMT HPC Cluster — Software Installation SOP / ACMT HPC 集群 — 軟體安裝 SOP
 
-## 1. Overview
+## 1. Overview / 總覽
 
-### 1.1 Software Stack Architecture
+### 1.1 Software Stack Architecture / 軟體堆疊架構
+
+The cluster keeps installed software, Tcl modulefiles, source tarballs, and build logs under fixed paths on shared NFS, so a single install on `acmt0` is visible cluster-wide.
+
+集群將安裝後的軟體、Tcl modulefile、原始碼壓縮檔與 build 日誌固定存放於共享 NFS 路徑，在 `acmt0` 安裝一次即可在全集群可見。
 
 ```
 Software install path:  /opt/<name>/<version>/     (on NFS, shared cluster-wide)
@@ -18,12 +22,16 @@ Source tarballs:        /opt/src/<name>-<version>.tar.gz
 Build logs:             /var/log/software-install/<name>-<version>.log
 ```
 
-- `/opt` is **NFS from acmt-storage** → visible on all nodes
-- Install once on **acmt0** (headnode), available everywhere
-- All software uses **Environment Modules** (Tcl-based `module` command)
-- Builds done with latest GCC or Intel compiler as appropriate
+- `/opt` is **NFS from acmt-storage** — visible on all nodes / `/opt` 由 **acmt-storage** 透過 NFS 共享，全節點可見
+- Install once on **acmt0** (headnode), available everywhere / 在 **acmt0** (headnode) 安裝一次，全集群可用
+- All software uses **Environment Modules** (Tcl-based `module` command) / 所有軟體透過 **Environment Modules** (Tcl 的 `module` 命令) 管理
+- Builds use the latest GCC or Intel compiler as appropriate / 建置時依需求使用最新 GCC 或 Intel 編譯器
 
-### 1.2 Quickstart (TL;DR)
+### 1.2 Quickstart (TL;DR) / 快速開始 (TL;DR)
+
+End-to-end happy-path: build → install → write modulefile → smoke-test.
+
+由建置到驗證的最短路徑：build → install → 寫 modulefile → 測試。
 
 ```bash
 # 1. Build & install
@@ -53,9 +61,13 @@ which <binary>
 
 ---
 
-## 2. Directory Conventions
+## 2. Directory Conventions / 目錄規範
 
-### 2.1 Standard Layout
+### 2.1 Standard Layout / 標準佈局
+
+The shared `/opt` tree splits installed roots, modulefiles, source tarballs, and complex applications by purpose.
+
+共享的 `/opt` 樹依用途切分：安裝根目錄、modulefile、原始碼壓縮檔、複雜應用。
 
 ```
 /opt/
@@ -75,17 +87,17 @@ which <binary>
 └── intel/modulefiles/           # Intel oneAPI modulefiles
 ```
 
-### 2.2 Naming Rules
+### 2.2 Naming Rules / 命名規則
 
-| Field | Convention | Example |
+| Field / 欄位 | Convention / 規範 | Example / 範例 |
 |-------|-----------|---------|
-| `<name>` | lowercase, hyphen-separated | `openmpi`, `fftw`, `gromacs` |
+| `<name>` | lowercase, hyphen-separated / 小寫，連字號分隔 | `openmpi`, `fftw`, `gromacs` |
 | `<version>` | SemVer (`X.Y` or `X.Y.Z`) | `4.2.1`, `2024.1` |
-| Module alias | `latest` symlink to default version | `gcc/latest → gcc/15.2` |
+| Module alias / Module 別名 | `latest` symlink to default version / `latest` symlink 指向預設版本 | `gcc/latest → gcc/15.2` |
 
-### 2.3 Existing Software Locations
+### 2.3 Existing Software Locations / 既有軟體位置
 
-| Software | Installed Path | Modulefile |
+| Software / 軟體 | Installed Path / 安裝路徑 | Modulefile |
 |----------|---------------|------------|
 | GCC 10.4 | `/opt/gcc/10.4` | `/opt/modulefiles/gcc/10.4` |
 | GCC 15.2 | `/opt/gcc/15.2` | `/opt/modulefiles/gcc/15.2` |
@@ -101,9 +113,13 @@ which <binary>
 
 ---
 
-## 3. Installation Workflow
+## 3. Installation Workflow / 安裝流程
 
-### 3.1 Standard Build & Install
+### 3.1 Standard Build & Install / 標準 build 與安裝
+
+Canonical autotools workflow with explicit dependency loading via `module`.
+
+採用 `module` 顯式載入相依的標準 autotools 流程。
 
 ```bash
 # Step 1: Prepare environment
@@ -134,7 +150,11 @@ make install
 find /opt/software/4.2.1/bin -type f -exec strip {} \;
 ```
 
-### 3.2 CMake-based Builds
+### 3.2 CMake-based Builds / CMake 建置
+
+Equivalent flow for CMake-based projects.
+
+CMake 專案的對應流程。
 
 ```bash
 mkdir build && cd build
@@ -146,7 +166,11 @@ make -j$(nproc)
 make install
 ```
 
-### 3.3 Python Packages (Conda)
+### 3.3 Python Packages (Conda) / Python 套件 (Conda)
+
+Use the system Conda at `/opt/conda` and expose the env as a module if it should be shared.
+
+使用 `/opt/conda` 的系統級 Conda；若要共享，將該 env 包成 module。
 
 ```bash
 # System Conda is at /opt/conda
@@ -164,7 +188,11 @@ prepend-path LD_LIBRARY_PATH $root/lib
 EOF
 ```
 
-### 3.4 Modulefile Template
+### 3.4 Modulefile Template / Modulefile 範本
+
+Standard modulefile structure with help text, whatis line, dependency loading, and path setup.
+
+標準 modulefile 結構：help 文字、whatis、相依載入、路徑設定。
 
 ```tcl
 #%Module1.0
@@ -206,9 +234,13 @@ setenv           <NAME>_DIR    $root
 
 ---
 
-## 4. Post-Install Validation
+## 4. Post-Install Validation / 安裝後驗證
 
-### 4.1 Required Checks
+### 4.1 Required Checks / 必要檢查
+
+Confirm the binary runs, libraries resolve, MPI launcher works, the compiler still compiles, and the module unloads cleanly.
+
+確認 binary 可執行、library 可解析、MPI launcher 正常、編譯器仍可編譯、module 可乾淨卸載。
 
 ```bash
 # 1. Binary works
@@ -231,7 +263,11 @@ module unload <name>/<version>
 module list 2>&1 | grep <name> && echo "FAIL: still loaded" || echo "OK"
 ```
 
-### 4.2 Slurm Smoke Test
+### 4.2 Slurm Smoke Test / Slurm 煙霧測試
+
+Submit a minimal Slurm job that loads the module and runs the binary.
+
+提交一個最小的 Slurm 作業，載入 module 並執行 binary。
 
 ```bash
 # Submit a quick test job
@@ -257,27 +293,43 @@ sbatch /tmp/test-<name>.sh
 squeue -u root
 ```
 
-### 4.3 ⚠️ Critical: `module` Command in Slurm Jobs
+### 4.3 Critical: `module` Command in Slurm Jobs / 重要：Slurm 作業中的 `module` 命令
 
-Environment Modules is initialized for login shells by `/etc/profile.d/modules.sh` (a thin wrapper); inside Slurm batch shells you must source the underlying `/usr/share/modules/init/bash` directly (see workarounds in §4.3 below). Slurm batch jobs run as **non-interactive non-login shells** by default, so `module` is NOT available inside job scripts without this.
+> **Warning / 警告**
+>
+> Environment Modules is initialized for login shells by `/etc/profile.d/modules.sh` (a thin wrapper around `/usr/share/modules/init/bash`). Slurm batch shells are **non-interactive non-login** by default and do NOT source `/etc/profile.d/`, so `module` is unavailable inside job scripts unless you source the underlying init file directly.
+>
+> Environment Modules 在 login shell 中由 `/etc/profile.d/modules.sh` 初始化（它只是 `/usr/share/modules/init/bash` 的薄包裝）。Slurm batch shell 預設是 **non-interactive non-login**，不會 source `/etc/profile.d/`；除非你自行 source 底層 init 檔，否則 job script 內無法使用 `module`。
 
-**Symptoms**: `module: command not found` in job output. The script silently falls back to system defaults (e.g., system GCC instead of loaded module).
+**Symptoms / 徵兆**: `module: command not found` in job output; the script silently falls back to system defaults (e.g. system GCC instead of the loaded module).
 
-**Fix**: Add this line at the top of every Slurm job script that uses modules:
+`module: command not found` 出現在 job 輸出；script 會靜默退回系統預設（例如使用系統 GCC 而非已載入的 module）。
+
+**Fix / 修法**: Add the explicit source line at the top of every Slurm job script that uses modules.
+
+每個用到 module 的 Slurm job script 最上方都加入下列 source 指令。
 
 ```bash
 source /usr/share/modules/init/bash   # or /usr/share/modules/init/sh
 ```
 
-**Alternative**: Submit with `sbatch --export=ALL` (default) and pre-load modules via `sbatch --wrap`, but this is fragile. The explicit `source` approach is recommended.
+**Alternative / 替代方案**: Submit with `sbatch --export=ALL` (default) and pre-load modules via `sbatch --wrap`. This is fragile — the explicit `source` approach is recommended.
 
-**Cluster-wide fix** (future): Add `source /usr/share/modules/init/bash` to Slurm's `Prolog` script, or add `--login` to Slurm's `SpawnParameters` in `slurm.conf` — but both have side effects and should be tested before deploying.
+以 `sbatch --export=ALL`（預設）並透過 `sbatch --wrap` 預先載入 module。此方法較脆弱，建議仍以顯式 `source` 為主。
+
+**Cluster-wide fix (future) / 集群層級修法（未來）**: Either add `source /usr/share/modules/init/bash` to Slurm's `Prolog` script, or add `--login` to Slurm's `SpawnParameters` in `slurm.conf`. Both have side effects and should be tested before deploying.
+
+可在 Slurm `Prolog` 中加入 `source /usr/share/modules/init/bash`，或在 `slurm.conf` 的 `SpawnParameters` 加入 `--login`。兩者皆有副作用，部署前需測試。
 
 ---
 
-## 5. Module Management
+## 5. Module Management / Module 管理
 
-### 5.1 Common Operations
+### 5.1 Common Operations / 常用操作
+
+List, load, inspect, unload, swap, and default versions.
+
+列出、載入、檢視、卸載、切換版本、設定預設版本。
 
 ```bash
 # List available software
@@ -305,18 +357,20 @@ ln -sf /opt/modulefiles/gcc/15.2 /opt/modulefiles/gcc/default
 # Then users can: module load gcc  # loads the default
 ```
 
-### 5.2 Version Policy
+### 5.2 Version Policy / 版本策略
 
-| Rule | Guideline |
+| Rule / 規則 | Guideline / 指引 |
 |------|-----------|
-| Keep old versions | Never delete old versions — users may depend on them |
-| Latest is default | Symlink `default` → latest stable version |
-| Deprecation | Move to `/opt/modulefiles/<name>/<ver>.deprecated` |
-| EOL removal | Annouce 3 months before removing any version |
+| Keep old versions / 保留舊版 | Never delete old versions — users may depend on them / 不刪舊版，使用者可能依賴 |
+| Latest is default / 預設為最新 | Symlink `default` → latest stable version / `default` symlink 指向最新穩定版 |
+| Deprecation / 棄用 | Move to `/opt/modulefiles/<name>/<ver>.deprecated` / 移動到 `/opt/modulefiles/<name>/<ver>.deprecated` |
+| EOL removal / EOL 移除 | Announce 3 months before removing any version / 任何版本移除前先公告 3 個月 |
 
-### 5.3 MODULEPATH Configuration
+### 5.3 MODULEPATH Configuration / MODULEPATH 設定
 
-The system MODULEPATH is configured in `/etc/environment-modules/modulespath`:
+The system MODULEPATH lives in `/etc/environment-modules/modulespath`.
+
+系統 MODULEPATH 設定於 `/etc/environment-modules/modulespath`。
 
 ```
 /opt/modulefiles
@@ -330,15 +384,21 @@ The system MODULEPATH is configured in `/etc/environment-modules/modulespath`:
 
 To add a new module path:
 
+新增 module 路徑：
+
 ```bash
 echo "/opt/<new-path>/modulefiles" >> /etc/environment-modules/modulespath
 ```
 
 ---
 
-## 6. Software-Specific Recipes
+## 6. Software-Specific Recipes / 軟體專用配方
 
-### 6.1 Compiler-first: GCC
+### 6.1 Compiler-first: GCC / 編譯器優先：GCC
+
+Bootstrap a new GCC version using `download_prerequisites`.
+
+使用 `download_prerequisites` 啟動新版 GCC。
 
 ```bash
 # Already done: see /root/install_gcc15.2_with_module_and_slurm.sh
@@ -356,7 +416,11 @@ make -j$(nproc) bootstrap
 make install
 ```
 
-### 6.2 MPI: OpenMPI
+### 6.2 MPI: OpenMPI / MPI：OpenMPI
+
+OpenMPI build with UCX + CUDA when GPU support is needed.
+
+需要 GPU 支援時的 OpenMPI 建置，使用 UCX + CUDA。
 
 ```bash
 module load gcc/15.2
@@ -371,10 +435,17 @@ make -j$(nproc) all
 make install
 ```
 
-**Important**: Build separate OpenMPI for each CUDA version if GPU support needed.
-Existing examples: `/opt/openmpi-5.0.5-cuda12.4`, `/opt/openmpi-cuda11.8`
+**Important / 重要**: Build a separate OpenMPI per CUDA version when GPU support is needed.
 
-### 6.3 Libraries: FFTW, HDF5, NetCDF, etc.
+需 GPU 支援時，每個 CUDA 版本要建獨立的 OpenMPI。
+
+Existing examples / 既有範例: `/opt/openmpi-5.0.5-cuda12.4`, `/opt/openmpi-cuda11.8`
+
+### 6.3 Libraries: FFTW, HDF5, NetCDF, etc. / 函式庫：FFTW、HDF5、NetCDF 等
+
+Typical MPI-aware library build.
+
+支援 MPI 的典型函式庫建置。
 
 ```bash
 module load gcc/15.2
@@ -389,7 +460,11 @@ make -j$(nproc)
 make install
 ```
 
-### 6.4 GPU Software
+### 6.4 GPU Software / GPU 軟體
+
+Load CUDA + a compatible compiler; ensure the chosen OpenMPI was built `--with-cuda`.
+
+載入 CUDA + 相容編譯器；確認所選 OpenMPI 在建置時加了 `--with-cuda`。
 
 ```bash
 module load cuda/12.6
@@ -399,7 +474,11 @@ module load gcc/15.2
 module load openmpi/5.0.5  # must be built with --with-cuda
 ```
 
-### 6.5 Intel oneAPI Components
+### 6.5 Intel oneAPI Components / Intel oneAPI 元件
+
+Intel oneAPI is installed via its own installer and ships pre-generated modulefiles.
+
+Intel oneAPI 由其自身的 installer 安裝，並提供現成 modulefile。
 
 ```bash
 # Intel oneAPI is installed via their installer
@@ -411,11 +490,15 @@ module load mkl/latest        # Intel MKL
 
 ---
 
-## 7. Build Environment Best Practices
+## 7. Build Environment Best Practices / 建置環境最佳實踐
 
-### 7.1 Compiler Flags
+### 7.1 Compiler Flags / 編譯器旗標
 
-| Architecture | `-march` flag | Notes |
+Per-node `-march` recommendations based on the heterogeneous mix of CPU generations.
+
+依異質 CPU 世代給出各節點建議的 `-march`。
+
+| Architecture / 架構 | `-march` flag | Notes / 備註 |
 |--------------|---------------|-------|
 | acmt01-02 (R620, E5-2590v3) | `-march=haswell` | AVX2 |
 | acmt04 (R630a, E5-2697v3) | `-march=haswell` | AVX2 |
@@ -427,35 +510,43 @@ module load mkl/latest        # Intel MKL
 | acmt21-27 (DL360, Gold 6142) | `-march=skylake-avx512` | AVX-512 |
 | acmt-gpu (Gigabyte) | `-march=haswell` | GPU-focused |
 
-**Conservative default**: `-march=x86-64-v3` (works on Haswell and later)
+**Conservative default / 保守預設**: `-march=x86-64-v3` — works on Haswell and later / 適用 Haswell 以後
 
-### 7.2 Building for Heterogeneous Cluster
+### 7.2 Building for a Heterogeneous Cluster / 為異質集群建置
 
-Option A — **Generic build** (recommended for most software):
+Two approaches: one generic build for portability, or per-arch builds for performance-critical code.
+
+兩種策略：通用建置以求可移植，或按架構分別建置以追求效能。
+
+Option A — **Generic build** (recommended for most software) / **通用建置** (大多數軟體建議):
 ```bash
 CFLAGS="-O2 -march=x86-64-v3" CXXFLAGS="-O2 -march=x86-64-v3"
 ```
 
-Option B — **Multiple builds** (for performance-critical code):
+Option B — **Multiple builds** (for performance-critical code) / **多版本建置** (效能關鍵程式碼):
 ```bash
 /opt/<name>/<ver>/skylake     # -march=skylake-avx512
 /opt/<name>/<ver>/haswell     # -march=haswell
 ```
 
-### 7.3 Using the Right Compiler
+### 7.3 Using the Right Compiler / 選擇正確的編譯器
 
-| Task | Recommended Compiler |
+| Task / 任務 | Recommended Compiler / 建議編譯器 |
 |------|---------------------|
-| General HPC code | GCC 15.2 (`module load gcc/15.2`) |
-| Intel-optimized | Intel oneAPI (`module load compiler/latest`) |
+| General HPC code / 一般 HPC 程式 | GCC 15.2 (`module load gcc/15.2`) |
+| Intel-optimized / Intel 最佳化 | Intel oneAPI (`module load compiler/latest`) |
 | GPU (CUDA) | GCC 10.4 + CUDA 12.6 |
-| NVHPC ecosystem | NVHPC 24.7 (`module load nvhpc/24.7`) |
+| NVHPC ecosystem / NVHPC 生態 | NVHPC 24.7 (`module load nvhpc/24.7`) |
 
 ---
 
-## 8. Directory & Permission Standards
+## 8. Directory & Permission Standards / 目錄與權限規範
 
-### 8.1 Ownership
+### 8.1 Ownership / 擁有權
+
+Default permissions for the standard install tree.
+
+標準安裝樹的預設權限。
 
 ```
 /opt/<name>/<version>     root:root   755    (standard)
@@ -463,14 +554,18 @@ Option B — **Multiple builds** (for performance-critical code):
 /opt/src/                 root:root   755
 ```
 
-### 8.2 Shared Workspace for Users
+### 8.2 Shared Workspace for Users / 使用者共享工作區
 
 ```
 /home/<user>/software/    <user>:<group>  755   (user-private builds)
 /opt/apps/shared/        root:lab        755   (group-shared installs)
 ```
 
-### 8.3 ACLs (if needed)
+### 8.3 ACLs (if needed) / ACL (需要時使用)
+
+Use POSIX ACLs to grant a group read/execute access without changing ownership.
+
+使用 POSIX ACL 在不變動擁有者的情況下，授予群組讀/執行權。
 
 ```bash
 # Let lab group read/execute a specific software tree
@@ -480,11 +575,13 @@ setfacl -R -m d:g:lab:rx /opt/<name>/<version>
 
 ---
 
-## 9. Reporting & Documentation
+## 9. Reporting & Documentation / 報告與文件
 
-### 9.1 Install Log Template
+### 9.1 Install Log Template / 安裝紀錄範本
 
 Every installation should be logged. The cluster-wide change history (including software installs that affect users) lives in [maintenance-log.md](maintenance-log.md) — follow that file's template for entries that touch user-visible behaviour.
+
+每次安裝都應留下紀錄。會影響使用者的軟體安裝請寫入集群層級變更歷史 [maintenance-log.md](maintenance-log.md)，並依該檔範本撰寫。
 
 ```bash
 cat >> /var/log/software-install/README << 'LOG'
@@ -500,9 +597,11 @@ cat >> /var/log/software-install/README << 'LOG'
 LOG
 ```
 
-### 9.2 Announcement
+### 9.2 Announcement / 公告
 
-After installation:
+After installation, notify users via `wall` or e-mail.
+
+安裝後以 `wall` 或 e-mail 通知使用者。
 
 ```bash
 echo "New software available: <name> <ver>
@@ -519,7 +618,11 @@ MAIL
 
 ---
 
-## 10. Quick Reference Card
+## 10. Quick Reference Card / 速查卡
+
+End-to-end command sequence collapsed onto one screen.
+
+整個流程濃縮在一個畫面上的命令序列。
 
 ```bash
 # === INSTALL FLOW ===
@@ -549,7 +652,11 @@ echo "<name>/<ver> installed — module load <name>/<ver>" | wall
 
 ---
 
-## Appendix A: Existing Module Environment Reference
+## Appendix A: Existing Module Environment Reference / 附錄 A：既有 Module 環境參考
+
+Common workflows for the modules already installed on the cluster.
+
+集群既有 module 的常用工作流。
 
 ```bash
 # View all available software
@@ -567,15 +674,15 @@ module load openfoam                     # OpenFOAM 10
 module load conda/conda                  # Conda environment
 ```
 
-## Appendix B: Troubleshooting
+## Appendix B: Troubleshooting / 附錄 B：故障排除
 
-| Problem | Likely Cause | Fix |
+| Problem / 問題 | Likely Cause / 可能原因 | Fix / 修法 |
 |---------|-------------|-----|
-| `module: command not found` | environment-modules not installed, or Slurm batch shell not initialized | `apt install environment-modules`. In Slurm jobs: `source /usr/share/modules/init/bash` |
-| `module avail` shows nothing | MODULEPATH wrong | Check `/etc/environment-modules/modulespath` |
-| `./configure` can't find MPI | MPI not in PATH | `module load openmpi/5.0.5` before configure |
-| `mpirun` fails with IB error | UCX missing | `module load ucx/1.17.0` |
-| CUDA not found | CUDA not loaded | `module load cuda/12.6` |
-| `cannot find -lfoo` | Library not in LD_LIBRARY_PATH | Check `--with-*` flags or add to modulefile |
-| Executable can't run on some nodes | `-march` too new (e.g. AVX-512 binary on Haswell) | Rebuild with `-march=x86-64-v3` |
-| Permission denied | Wrong ownership | `chown -R root:root /opt/<name>/<ver>` |
+| `module: command not found` | environment-modules not installed, or Slurm batch shell not initialized / 未安裝 environment-modules，或 Slurm batch shell 未初始化 | `apt install environment-modules`. In Slurm jobs: `source /usr/share/modules/init/bash` / Slurm 作業中：`source /usr/share/modules/init/bash` |
+| `module avail` shows nothing / `module avail` 無輸出 | MODULEPATH wrong / MODULEPATH 錯誤 | Check `/etc/environment-modules/modulespath` / 檢查 `/etc/environment-modules/modulespath` |
+| `./configure` can't find MPI / `./configure` 找不到 MPI | MPI not in PATH / MPI 不在 PATH | `module load openmpi/5.0.5` before configure / 在 configure 前載入 |
+| `mpirun` fails with IB error / `mpirun` 出現 IB 錯誤 | UCX missing / 缺少 UCX | `module load ucx/1.17.0` |
+| CUDA not found / 找不到 CUDA | CUDA not loaded / 未載入 CUDA | `module load cuda/12.6` |
+| `cannot find -lfoo` | Library not in LD_LIBRARY_PATH / library 不在 LD_LIBRARY_PATH | Check `--with-*` flags or add to modulefile / 檢查 `--with-*` 旗標或加入 modulefile |
+| Executable can't run on some nodes / 執行檔在部分節點無法執行 | `-march` too new (e.g. AVX-512 binary on Haswell) / `-march` 太新 (如在 Haswell 上跑 AVX-512 binary) | Rebuild with `-march=x86-64-v3` / 以 `-march=x86-64-v3` 重建 |
+| Permission denied / 權限不足 | Wrong ownership / 擁有者錯誤 | `chown -R root:root /opt/<name>/<ver>` |

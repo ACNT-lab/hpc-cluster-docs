@@ -1,24 +1,35 @@
 ---
-title: ACMT HPC Cluster — Troubleshooting Decision Tree
+title: ACMT HPC Cluster — Troubleshooting Decision Tree | ACMT HPC Cluster — 故障診斷決策樹
 type: Operations
 last_updated: 2026-05-22
 source_of_truth: This file (diagnostic procedures); `STATUS.md` §1 (current known issues)
 ---
 
-# ACMT HPC Cluster — Troubleshooting Decision Tree
+# ACMT HPC Cluster — Troubleshooting Decision Tree / 故障診斷決策樹
 
-通用原則:
-1. 先確認問題範圍: 單一節點？部分節點？全部節點？
-2. 由外而內檢查: 網路 → 服務 → 設定 → 硬體
+General principles:
+1. Scope the problem first: one node? a subset? all nodes?
+2. Inspect outside-in: network → service → configuration → hardware
+3. Record pre-change state so you can roll back
+
+通用原則：
+1. 先確認問題範圍：單一節點？部分節點？全部節點？
+2. 由外而內檢查：網路 → 服務 → 設定 → 硬體
 3. 記錄操作前狀態，以便復原
 
-**Related docs**: 目前已知 issue / 節點狀態見 [STATUS.md §1](STATUS.md)；告警規則與監控配置見 [monitoring-alerting.md](monitoring-alerting.md)；常用排查指令彙整於 [tools-commands.md](tools-commands.md)。
+**Related docs / 相關文件**: current open issues and node states live in [STATUS.md §1](STATUS.md); alert rules and monitoring configuration in [monitoring-alerting.md](monitoring-alerting.md); common diagnostic commands collected in [tools-commands.md](tools-commands.md).
+
+目前已知 issue 與節點狀態見 [STATUS.md §1](STATUS.md)；告警規則與監控配置見 [monitoring-alerting.md](monitoring-alerting.md)；常用排查指令彙整於 [tools-commands.md](tools-commands.md)。
 
 ---
 
-## 1. 節點離線 (NODE NOT_RESPONDING / DOWN)
+## 1. Node Offline (NODE NOT_RESPONDING / DOWN) / 節點離線
 
-### 決策樹
+A node shows as `DOWN` or `NOT_RESPONDING` in `sinfo`. Walk from network reachability inward to the `slurmd` daemon and its dependencies.
+
+節點在 `sinfo` 顯示為 `DOWN` 或 `NOT_RESPONDING`。由網路連通性向內逐層檢查到 `slurmd` 服務與其相依元件。
+
+### Decision tree / 決策樹
 
 ```
 節點在 sinfo 顯示 DOWN 或 NOT_RESPONDING?
@@ -81,13 +92,19 @@ source_of_truth: This file (diagnostic procedures); `STATUS.md` §1 (current kno
         └─ 作業可能已完成或被取消，檢查 squeue
 ```
 
+> Offline / drained node states are tracked in [STATUS.md §1](STATUS.md) — refreshed on each live scan; do not snapshot here.
+>
 > 離線/Drain 節點狀態請見 [STATUS.md §1](STATUS.md) — 該檔每次 live scan 後更新，不要在本檔內快照。
 
 ---
 
-## 2. Slurmctld 服務異常
+## 2. Slurmctld Service Anomaly / Slurmctld 服務異常
 
-### 決策樹
+`scontrol` or `sinfo` returns `Connection refused` / `Timeout`. The controller daemon, its database, and Munge form a startup chain — diagnose along that chain.
+
+`scontrol` 或 `sinfo` 回傳 `Connection refused` 或 `Timeout`。Controller 守護程序、資料庫、Munge 形成啟動鏈，沿此鏈逐步診斷。
+
+### Decision tree / 決策樹
 
 ```
 scontrol 或 sinfo 命令回傳 Connection refused 或 Timeout?
@@ -127,7 +144,11 @@ scontrol 或 sinfo 命令回傳 Connection refused 或 Timeout?
     # "error: mysql" → 資料庫連線問題
 ```
 
-### 修復指令匯總
+### Repair commands / 修復指令匯總
+
+Full restart order on `acmt0` (respect the dependency chain: Munge first, MySQL next, then slurmdbd, finally slurmctld).
+
+在 `acmt0` 上的完整重啟順序（按相依鏈：Munge → MySQL → slurmdbd → slurmctld）。
 
 ```bash
 # 完整重啟順序 (在 acmt0 上)
@@ -145,9 +166,13 @@ systemctl is-active munge mysql slurmdbd slurmctld
 
 ---
 
-## 3. Slurmd (計算節點) 異常
+## 3. Slurmd (Compute Node) Anomaly / Slurmd (計算節點) 異常
 
-### 決策樹
+A specific compute node cannot rejoin the cluster (shows `down` or `not responding` in `sinfo`). Re-check basic connectivity, then the local daemon, then Munge.
+
+特定節點無法加入集群（`sinfo` 顯示 `down` 或 `not responding`）。先確認基本連通性，再檢查本機守護程序與 Munge。
+
+### Decision tree / 決策樹
 
 ```
 特定節點無法加入集群 (sinfo 顯示 down 或 not responding)?
@@ -181,7 +206,11 @@ systemctl is-active munge mysql slurmdbd slurmctld
     systemctl restart munge && systemctl restart slurmd
 ```
 
-### 批量修復
+### Bulk repair / 批量修復
+
+Use Ansible to restart `slurmd` across many nodes; exclude the head node and storage.
+
+使用 Ansible 在多節點上重啟 `slurmd`；排除 head node 與儲存節點。
 
 ```bash
 # 使用 Ansible 在所有節點重啟 slurmd
@@ -193,9 +222,13 @@ ansible acmtXX -m shell -a "systemctl restart slurmd && systemctl is-active slur
 
 ---
 
-## 4. NFS 掛載異常
+## 4. NFS Mount Anomaly / NFS 掛載異常
 
-### 決策樹
+`df -h /home` or `/opt` reports stale handles or the mount has disappeared. Verify the server side first (`acmt-storage`), then the client mount, and check the IB fabric if RDMA-NFS is in use.
+
+`df -h /home` 或 `/opt` 顯示 stale 或掛載遺失。先確認伺服器端 (`acmt-storage`)，再檢查 client 端掛載；若使用 RDMA-NFS，再檢查 IB fabric。
+
+### Decision tree / 決策樹
 
 ```
 df -h /home 或 /opt 顯示 stale 或掛載遺失?
@@ -235,7 +268,11 @@ df -h /home 或 /opt 顯示 stale 或掛載遺失?
     # 若 DOWN → 檢查 IB 交換機和纜線
 ```
 
-### 常用修復
+### Common repair / 常用修復
+
+Run on each affected node — lazy-unmount, then mount, then verify; reboot if `umount` won't release.
+
+於每個受影響的節點執行——懶卸載、重新掛載、驗證；若 `umount` 無法釋放則考慮重啟。
 
 ```bash
 # 在每個受影響的節點上
@@ -252,9 +289,13 @@ df -h /home /opt
 
 ---
 
-## 5. 作業卡住 (Job STUCK / SUSPENDED)
+## 5. Job Stuck (STUCK / SUSPENDED / PENDING) / 作業卡住
 
-### 決策樹
+A job sits in `RUNNING` with no progress, or has been `PENDING` for an unusually long time. Cross-check job state, node-side processes, and queueing reasons.
+
+作業長時間處於 `RUNNING` 卻無進度，或長時間 `PENDING`。交叉檢查 job state、節點上的行程，與排隊原因。
+
+### Decision tree / 決策樹
 
 ```
 作業長時間在 RUNNING 狀態但無進度?
@@ -305,9 +346,13 @@ df -h /home /opt
 
 ---
 
-## 6. GPU 問題
+## 6. GPU Issues / GPU 問題
 
-### 決策樹
+GPU jobs cannot dispatch or fail at runtime. Probe `nvidia-smi` on the GPU node, validate Slurm's GRES view of it, and confirm CUDA is installed and exported.
+
+GPU 作業送不出去或執行失敗。在 GPU 節點上探測 `nvidia-smi`、確認 Slurm 對該節點的 GRES 視角、檢查 CUDA 是否安裝並匯出。
+
+### Decision tree / 決策樹
 
 ```
 GPU 作業送不出去或執行失敗?
@@ -350,9 +395,13 @@ GPU 作業送不出去或執行失敗?
 
 ---
 
-## 7. InfiniBand 異常
+## 7. InfiniBand Anomaly / InfiniBand 異常
 
-### 決策樹
+The IB fabric is unreachable or throughput is far below expected. Walk from `ibstat` state through topology discovery into bandwidth measurement.
+
+IB 網路不通或效能低落。從 `ibstat` 狀態到拓樸發現，再到頻寬量測逐步檢查。
+
+### Decision tree / 決策樹
 
 ```
 IB 網路不通或效能低落?
@@ -385,7 +434,13 @@ IB 網路不通或效能低落?
 
 ---
 
-## 8. 無法送出作業
+## 8. Cannot Submit Jobs / 無法送出作業
+
+`sbatch job.sh` fails outright. The error message points at one of four root causes — account/group, partition name, QoS limit, or controller availability.
+
+`sbatch job.sh` 直接失敗。錯誤訊息會指向四類根因——帳號/群組、分區名稱、QoS 限制、或 controller 是否可達。
+
+### Decision tree / 決策樹
 
 ```
 sbatch job.sh 失敗?
@@ -409,24 +464,26 @@ sbatch job.sh 失敗?
 
 ---
 
-## 9. 日誌快速查詢
+## 9. Quick Log Lookup / 日誌快速查詢
 
-| 問題類型 | 日誌位置 | 查詢命令 |
+| Problem type / 問題類型 | Log location / 日誌位置 | Query command / 查詢命令 |
 |----------|----------|----------|
-| Slurmctld 問題 | `/var/log/slurm/slurmctld.log` | `tail -100 /var/log/slurm/slurmctld.log` |
-| Slurmd 問題 | `/var/log/slurm/slurmd.log` | `ssh acmtXX "tail -50 /var/log/slurm/slurmd.log"` |
-| Slurmdbd 問題 | `/var/log/slurm/slurmdbd.log` | `tail -50 /var/log/slurm/slurmdbd.log` |
-| Munge 認證問題 | `journalctl -u munge` | `journalctl -u munge -n 30 --no-pager` |
-| 系統核心訊息 | `dmesg` | `dmesg \| tail -30` |
-| 所有系統日誌 | `journalctl` | `journalctl -n 50 --no-pager` |
-| NFS 問題 | `journalctl` | `journalctl -u home.mount -n 20` |
-| GPU 驅動問題 | `dmesg` | `dmesg \| grep -i nvidia` |
+| Slurmctld / Slurmctld 問題 | `/var/log/slurm/slurmctld.log` | `tail -100 /var/log/slurm/slurmctld.log` |
+| Slurmd / Slurmd 問題 | `/var/log/slurm/slurmd.log` | `ssh acmtXX "tail -50 /var/log/slurm/slurmd.log"` |
+| Slurmdbd / Slurmdbd 問題 | `/var/log/slurm/slurmdbd.log` | `tail -50 /var/log/slurm/slurmdbd.log` |
+| Munge auth / Munge 認證問題 | `journalctl -u munge` | `journalctl -u munge -n 30 --no-pager` |
+| Kernel messages / 系統核心訊息 | `dmesg` | `dmesg \| tail -30` |
+| All system logs / 所有系統日誌 | `journalctl` | `journalctl -n 50 --no-pager` |
+| NFS / NFS 問題 | `journalctl` | `journalctl -u home.mount -n 20` |
+| GPU driver / GPU 驅動問題 | `dmesg` | `dmesg \| grep -i nvidia` |
 
 ---
 
-## 10. 健康檢查腳本
+## 10. Health Check Script / 健康檢查腳本
 
-以下腳本可一鍵檢查集群整體健康狀態。在 acmt0 執行：
+The script below performs a one-shot cluster-wide health check. Run it from `acmt0`.
+
+以下腳本可一鍵檢查集群整體健康狀態，於 `acmt0` 執行。
 
 ```bash
 #!/bin/bash
