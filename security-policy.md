@@ -116,9 +116,10 @@ PasswordAuthentication yes
 
 ### 4.1 Current Issues
 
-1. **Plaintext bind password** in `/etc/ldap.conf`: `bindpw acmt2024`
+1. **Plaintext bind password** in `/etc/ldap.conf` (value `<REDACTED — see /etc/ldap.secret on acmt0>`)
    - File permissions: likely world-readable (depends on package defaults)
    - Fix: `chmod 600 /etc/ldap.conf` or move password to `/etc/ldap.secret`
+   - **Action required:** rotate the bind password on the LDAP server, update `/etc/ldap.conf` on acmt0 and every compute node (via Ansible `users` role), and verify git history was scrubbed (see CHANGELOG.md entry for 2026-05-22).
 
 2. **No TLS**: LDAP traffic is in cleartext on 192.168.1.0/24
    - Fix: Generate self-signed cert and enable `ssl start_tls` in `/etc/ldap.conf`
@@ -254,7 +255,7 @@ Current: `rw,soft,proto=tcp,timeo=600,retrans=2`
 ### 7.3 Slurm User Separation
 
 - Slurm users are managed via LDAP
-- Single Slurm account `lab` with 14 users
+- Single Slurm account `lab` with ~14 users (verify via `sacctmgr show users`)
 - No QoS restrictions — consider adding `QoS=normal` with resource limits
 - Root is Administrator — no other admin accounts
 
