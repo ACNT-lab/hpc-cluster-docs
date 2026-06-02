@@ -1,7 +1,7 @@
 ---
 title: ACMT HPC Cluster Node Configuration | ACMT HPC 集群節點配置文檔
 type: Reference (hardware configuration)
-last_updated: 2026-05-22
+last_updated: 2026-06-02
 source_of_truth: This file (hardware specs); `STATUS.md` §1.1 (current node availability)
 ---
 
@@ -26,64 +26,64 @@ source_of_truth: This file (hardware specs); `STATUS.md` §1.1 (current node ava
 ### r620 — High-memory partition / 高記憶體分區
 
 - **Nodes / 節點**: acmt01, acmt02
-- **CPU**: Intel Xeon E5-2590v3 @ 2.9GHz
+- **CPU**: Intel Xeon E5-2690 @ 2.90GHz
 - **Cores / 核心**: 16 cores (2×8×1)
-- **RAM / 記憶體**: 209GB
+- **RAM / 記憶體**: acmt01 209GB, acmt02 250GB
 
 ### r630a — High-performance partition / 高效能分區
 
 - **Nodes / 節點**: acmt04
-- **CPU**: Intel Xeon E5-2697v3
-- **Cores / 核心**: 28 cores (2×14×2)
-- **RAM / 記憶體**: 126GB
+- **CPU**: Intel Xeon E5-2697 v3 @ 2.60GHz
+- **Cores / 核心**: 28 cores (2×14×1)
+- **RAM / 記憶體**: 129GB
 
 ### r630b — Balanced partition / 平衡型分區
 
 - **Nodes / 節點**: acmt05, acmt06
-- **CPU**: Intel Xeon E5-2690v3 @ 2.6GHz
-- **Cores / 核心**: 24 cores (2×12×2)
-- **RAM / 記憶體**: 126GB
+- **CPU**: Intel Xeon E5-2690 v3 @ 2.60GHz
+- **Cores / 核心**: 24 cores (2×12×1)
+- **RAM / 記憶體**: 129GB
 
 ### r630c — Standard partition / 標準型分區
 
 - **Nodes / 節點**: acmt07
-- **CPU**: Intel Xeon E5-2620v4
-- **Cores / 核心**: 20 cores (2×10×2)
-- **RAM / 記憶體**: 64GB
+- **CPU**: Intel Xeon E5-2650 v3 @ 2.30GHz
+- **Cores / 核心**: 20 cores (2×10×1)
+- **RAM / 記憶體**: 80GB
 
 ### r630l — Large-memory partition / 大記憶體分區
 
 - **Nodes / 節點**: acmt08
-- **CPU**: Intel Xeon E5-2697v3
-- **Cores / 核心**: 28 cores (2×14×2)
-- **RAM / 記憶體**: 128GB
+- **CPU**: Intel Xeon E5-2697 v3 @ 2.60GHz
+- **Cores / 核心**: 28 cores (2×14×1)
+- **RAM / 記憶體**: 129GB
 
 ### r630m — Mid-tier partition / 中階分區
 
 - **Nodes / 節點**: acmt03, acmt12
-- **CPU**: Intel Xeon E5-2620v4
-- **Cores / 核心**: 16 cores (2×8×2)
-- **RAM / 記憶體**: 154GB
+- **CPU**: Intel Xeon E5-2620 v4 @ 2.10GHz
+- **Cores / 核心**: 16 cores (2×8×1)
+- **RAM / 記憶體**: 161GB
 
 ### r630s — Entry-level partition (default) / 入門級分區（預設分區）
 
 - **Nodes / 節點**: acmt09–11, acmt13–15 (6 nodes; acmt12 belongs to r630m / 共 6 個；acmt12 屬 r630m)
-- **CPU**: Intel Xeon E5-2620v2
-- **Cores / 核心**: 12 physical / 24 logical (2:6:2, HT on)
-- **RAM / 記憶體**: 15GB (small per-node memory — watch job mem requests / 節點記憶體偏小，注意作業 mem 申請)
+- **CPU**: Intel Xeon E5-2620 v3 @ 2.40GHz
+- **Cores / 核心**: 12 cores (2×6×1, HT disabled in Slurm)
+- **RAM / 記憶體**: acmt09-11 48GB, acmt13 32GB, acmt14-15 16GB (node memory varies significantly — check per-node limits)
 
 ### apollo — Silver-series partition / Silver 系列分區
 
 - **Nodes / 節點**: acmt16–19
-- **CPU**: Intel Xeon Silver 4114
-- **Cores / 核心**: 20 cores (2×10×2)
-- **RAM / 記憶體**: 11GB
+- **CPU**: Intel Xeon Silver 4114 @ 2.20GHz
+- **Cores / 核心**: 20 cores (2×10×1)
+- **RAM / 記憶體**: acmt16-17 11GB, acmt18-19 16GB
 
 ### r740 — RTX 3090 GPU partition / RTX 3090 GPU 節點
 
 - **Nodes / 節點**: acmt20
-- **CPU**: Intel Xeon Gold 5118 @ 2.3GHz
-- **Cores / 核心**: 24 cores (2×12×2)
+- **CPU**: Intel Xeon Gold 5118 @ 2.30GHz
+- **Cores / 核心**: 24 cores (2×12×1)
 - **RAM / 記憶體**: 112GB
 - **GPU**: **2 × NVIDIA GeForce RTX 3090 24GB GDDR6X** (Ampere sm_86, driver 560.35.05)
 
@@ -93,24 +93,22 @@ source_of_truth: This file (hardware specs); `STATUS.md` §1.1 (current node ava
 - **CPU**: AMD EPYC 7252
 - **Cores / 核心**: 16 cores (2×8×1)
 - **RAM / 記憶體**: 64GB
-- **GPU**: **4 × NVIDIA Tesla P100 PCIe 16GB HBM2** (Pascal sm_60)
+- **GPU**: **4 × NVIDIA Tesla P100 PCIe 16GB HBM2** (Pascal sm_60, Driver 535.309.01, CUDA 12.2)
 - **OverSubscribe**: YES (the only partition allowing multiple jobs per node / 唯一允許單節點多作業的分區)
-- ⚠️ `nvidia-smi` currently reports NVML driver/library mismatch — investigate before running jobs (see [`STATUS.md`](STATUS.md) ISS-NODE-10).
-- ⚠️ 目前 `nvidia-smi` 報 NVML driver/library mismatch — 跑作業前需先排查（見 [`STATUS.md`](STATUS.md) ISS-NODE-10）
 
 ### dl360 — High-performance computing partition / 高效能計算分區
 
 - **Nodes / 節點**: acmt21–26
-- **CPU**: Intel Xeon Gold 6142
-- **Cores / 核心**: 32 cores (2×16×2)
-- **RAM / 記憶體**: 251GB
+- **CPU**: Intel Xeon Gold 6142 @ 2.60GHz
+- **Cores / 核心**: 32 cores (2×16×1)
+- **RAM / 記憶體**: 258GB
 
 ### dl360s — Single-threaded partition / 單執行緒分區
 
 - **Nodes / 節點**: acmt27
-- **CPU**: Intel Xeon Gold 6142
+- **CPU**: Intel Xeon Gold 6142 @ 2.60GHz
 - **Cores / 核心**: 16 cores (2×16×1)
-- **RAM / 記憶體**: 251GB
+- **RAM / 記憶體**: 258GB
 
 ---
 
@@ -121,28 +119,32 @@ source_of_truth: This file (hardware specs); `STATUS.md` §1.1 (current node ava
 | CPU model / CPU 型號 | Nodes / 節點數 | Purpose / 用途 |
 |---------|-------|------|
 | Intel Xeon Gold 6142 | 7 | Top performance / 最高效能 |
-| Intel Xeon E5-2620v2 | 7 | Entry-level / 入門級 |
+| Intel Xeon E5-2620 v3 | 6 | Entry-level / 入門級 |
 | Intel Xeon Silver 4114 | 4 | Balanced / 平衡型 |
-| Intel Xeon E5-2620v4 | 3 | Standard / 標準型 |
-| Intel Xeon E5-2697v3 | 2 | High performance / 高效能 |
-| Intel Xeon E5-2590v3 | 2 | High memory / 高記憶體 |
-| Intel Xeon E5-2690v3 | 2 | Balanced / 平衡型 |
-| Intel Xeon Gold 5118 | 1 | GPU |
-| AMD EPYC 7252 | 1 | GPU |
+| Intel Xeon E5-2620 v4 | 2 | Standard / 標準型 |
+| Intel Xeon E5-2697 v3 | 2 | High performance / 高效能 |
+| Intel Xeon E5-2690 (v1) | 2 | High memory / 高記憶體 |
+| Intel Xeon E5-2690 v3 | 2 | Balanced / 平衡型 |
+| Intel Xeon E5-2650 v3 | 1 | Standard / 標準型 |
+| Intel Xeon Gold 5118 | 1 | GPU node (RTX 3090) / GPU 節點 |
+| AMD EPYC 7252 | 1 | GPU node (P100) / GPU 節點 |
 
 ### 2.2 Memory Configuration / 記憶體配置
 
 | Capacity / 容量 | Nodes / 節點數 | Series / 系列 |
 |------|-------|------|
-| 251GB | 7 | dl360 |
-| 209GB | 2 | r620 |
-| 154GB | 2 | r630m |
-| 128GB | 1 | r630l |
-| 126GB | 3 | r630a/b |
+| 258GB | 7 | dl360 / dl360s |
+| 250GB | 1 | r620 (acmt02) |
+| 209GB | 1 | r620 (acmt01) |
+| 161GB | 2 | r630m |
+| 129GB | 4 | r630a / r630b / r630l |
 | 112GB | 1 | r740 |
-| 64GB | 2 | r630c, gpu |
-| 15GB | 7 | r630s |
-| 11GB | 4 | apollo |
+| 80GB | 1 | r630c |
+| 64GB | 1 | gpu |
+| 48GB | 3 | r630s (acmt09-11) |
+| 32GB | 1 | r630s (acmt13) |
+| 16GB | 4 | r630s (acmt14-15) + apollo (acmt18-19) |
+| 11GB | 2 | apollo (acmt16-17) |
 
 ### 2.3 GPU Configuration / GPU 配置
 
@@ -150,8 +152,8 @@ Heterogeneous — pick the right partition before submitting jobs.
 
 GPU 為異質配置 — 跑作業前選對分區：
 
-- **acmt20** (`r740`): 2 × NVIDIA GeForce RTX 3090 24GB (Ampere sm_86, Intel Xeon platform / Ampere sm_86，Intel Xeon 平台)
-- **acmt-gpu** (`gpu`): 4 × NVIDIA Tesla P100 PCIe 16GB (Pascal sm_60, AMD EPYC platform / Pascal sm_60，AMD EPYC 平台)
+- **acmt20** (`r740`): 2 × NVIDIA GeForce RTX 3090 24GB (Ampere sm_86, Intel Xeon platform, Driver 560.35.05, CUDA 12.6 / Ampere sm_86，Intel Xeon 平台)
+- **acmt-gpu** (`gpu`): 4 × NVIDIA Tesla P100 PCIe 16GB (Pascal sm_60, AMD EPYC platform, Driver 535.309.01, CUDA 12.2 / Pascal sm_60，AMD EPYC 平台)
 - **Total / 總計**: 2 × RTX 3090 + 4 × Tesla P100 = 6 GPUs / 112GB GPU memory (48GB GDDR6X + 64GB HBM2) / 共 6 張 GPU、共 112GB GPU 記憶體
 - **CUDA compatibility / CUDA 相容**: P100 needs ≥ 9.0; RTX 3090 needs ≥ 11.0 (shared cuda/12.6 covers both) / P100 需 ≥ 9.0；RTX 3090 需 ≥ 11.0（共用 cuda/12.6 即可同時支援兩款）
 
@@ -161,11 +163,11 @@ GPU 為異質配置 — 跑作業前選對分區：
 
 | Item / 項目 | Value / 數值 |
 |------|------|
-| Total physical cores / 總 physical cores | ~560 |
-| Total logical CPUs (with HT) / 總 logical CPUs（含 HT） | ~1100 |
-| Total RAM / 總記憶體 | ~2.8TB |
+| Total physical cores / 總 physical cores | ~560 (HT disabled in Slurm) / 約 560（Slurm 中未啟用 HT） |
+| Total Slurm CPUs (no HT) / 總 Slurm CPUs（無 HT） | ~560 |
+| Total RAM / 總記憶體 | ~3.0TB |
 | Total GPU memory / GPU 總記憶體 | 112GB (64GB HBM2 + 48GB GDDR6X) |
-| NFS shared storage / NFS 共用儲存 | 11TB `/home` + 11TB `/opt` (acmt-storage) |
+| NFS shared storage / NFS 共用儲存 | 11T `/home` + 11T `/opt` (acmt-storage) |
 
 > Pull actual available node count via `sinfo` and cross-check [`STATUS.md`](STATUS.md) §1.1 to exclude known down/drain nodes.
 >
@@ -195,7 +197,8 @@ GPU 為異質配置 — 跑作業前選對分區：
 | FP64 performance / 雙精度效能 (FP64) | 5.3 TFLOPS |
 | FP32 performance / 單精度效能 (FP32) | 10.6 TFLOPS |
 | NVLink | Supported / 支援 |
-| CUDA version / CUDA 版本 | ≥ 9.0 |
+| Driver | 535.309.01 |
+| CUDA version / CUDA 版本 | ≥ 9.0 (current: 12.2) |
 | Power / 功耗 | 300W |
 
 ### NVIDIA GeForce RTX 3090 24GB (acmt20, 2 cards / 2 張)

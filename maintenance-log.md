@@ -35,6 +35,32 @@ Every entry follows this template:
 
 ---
 
+## 2026-06-02: Fix NFS auto-mount timeout on compute nodes / 修正 compute node NFS 開機自動掛載 timeout
+
+**Root cause / 根因:** Systemd mount unit `TimeoutSec=30` too short; NFS server (acmt-storage) may not be ready within 30s after cluster-wide reboot. No retry mechanism — mount fails once, never retried.
+
+**Fix applied / 修正內容:**
+
+1. Updated Ansible mount templates (`roles/nfs/templates/home.mount`, `opt.mount`):
+   - `TimeoutSec=30` → `TimeoutSec=120` (give NFS server 2 min to become ready)
+   - Removed invalid `nofail` from `Options=` (not a valid mount option in systemd .mount units)
+   - Added `bg,retry=120` (background retry if first attempt fails)
+   - Added `timeo=600,retrans=2` for consistent NFS timeout behavior
+   - Added `After=network-online.target Wants=network-online.target`
+2. Removed `/etc/fstab` NFS entries on all compute nodes (previously conflicted with systemd mount units)
+3. Updated headnode `/etc/fstab` and mount units identically
+4. Ran Ansible `acmt-nfs-fix.yml` to deploy to 24 reachable nodes (5 down nodes skipped)
+5. Applied without mount restart — new config will take effect on next node reboot
+
+**Files changed / 變更檔案:**
+
+| File | Description |
+|------|-------------|
+| `roles/nfs/templates/home.mount` | Updated mount unit for `/home` |
+| `roles/nfs/templates/opt.mount` | Updated mount unit for `/opt` |
+| `roles/nfs/tasks/main.yml` | Added fstab cleanup task; changed `when: not head` → `when: not storage` |
+| `acmt-nfs-fix.yml` | New focused playbook (nfs role only) |
+
 ## 2026-05-22: Documentation reorg + LDAP password redaction / 文件重整 + LDAP 密碼遮蔽
 
 **Category**: other (documentation)
